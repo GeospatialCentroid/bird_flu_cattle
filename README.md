@@ -1,4 +1,4 @@
-#Bird flu in cattle
+# Bird Flu in Cattle
 
 ## About
 
@@ -36,7 +36,8 @@ The application will load these files into memory and show the first day of the 
 
 ## Using the App
 The application provides many tools for you to explore your herd data.
-###The Map
+
+### The Map
 The map itself allows you to zoom in and out of your farm and pan around.
 The pens are drawn in blue and their id number is displayed on top. The pens can be clicked to reveal a popup, 
 and clicking the **Show Pen Data** link reveals a table showing all the cows in the pen on that day.
@@ -47,7 +48,7 @@ use the *Cluster Number* dropdown on the bottom right of the map (above the lege
 Clicking the cluster reveals all the cows in that pen on that day, and they are colored based on the legend.
 Clicking on a cow shows it's popup information and to see its movement history, click the **Show Movement History Link**, to reveal a table view of its data.
 
-###The Map Controls
+### The Map Controls
 Moving from left to right, the controls below the map do the following:
 1. Search by Cow ID, enter a number into the input field to find where that particular cow is on the map.
 2. The Start and End Date fields allow you to adjust the range used to animate cow movements over time. 
@@ -56,7 +57,7 @@ Moving from left to right, the controls below the map do the following:
 3. The Current Date field updates as the animation progresses, or can be changed to any day within your data's range. 
    The left and right arrows next to this field allow you to jump either forward or backwards in time.
 
-###The Table View
+### The Table View
 A table is created when either the **Show Pen Data** link or **Show Movement History** link is clicked. 
 This table shows an exploded view of the loaded data, where each herd movement event is converted to a start and end date range.
 Clicking a row in the table changes the current date to the start date of the row event and selects the corresponding cow ID on the map.
