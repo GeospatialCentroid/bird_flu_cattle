@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Cattle Flu</title>
+    
+    
+    <script type="text/javascript" src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <script type="text/javascript" src='plugins/leaflet/Leaflet.markercluster-1.4.1/dist/leaflet.markercluster.js'></script>
+    <link rel="stylesheet" href="plugins/leaflet/Leaflet.markercluster-1.4.1/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="plugins/leaflet/Leaflet.markercluster-1.4.1/dist/MarkerCluster.Default.css">
+
+    <!-- from https://jqueryui.com/download/ -->
+    <link rel="stylesheet" href="plugins/jquery-ui/jquery-ui.css">
+
+
+    <script src="plugins/jquery-ui/external/jquery/jquery.js"></script>
+    <script src="plugins/jquery-ui/jquery-ui.js"></script>
+
+     <script src="plugins/moment.js"></script>
+
+    <script type="text/javascript" src="plugins/jquery/jquery.datetimepicker.js"></script>
+    <script type="text/javascript" src="plugins/jquery/jquery.datetimepicker.full.min.js"></script>
+    <link rel="stylesheet" href="plugins/jquery/jquery.datetimepicker.css">
+
+    <script type="text/javascript" src="plugins/jquery/jquery.cookie.js"></script>
+
+    <script src="plugins/jquery.csv.js"></script>
+
+    <!--bootstrap-->
+    <link href="plugins/bootstrap-5.0.2-dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <script src="plugins/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="plugins/rison.js"></script>
+
+    <script src="js/index.js"></script>
+     <script src="js/record_manager.js"></script>
+     <script src="js/map_manager.js"></script>
+      <script src="js/marker_manager.js"></script>
+      <script src="js/layer_manager.js"></script>
+      <script src="js/table_manager.js"></script>
+     <script src="js/utils.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+
+
+
+<body>
+<div class="overlay ">
+    <div class="progress">
+          <div id="loader" class="progress-bar progress-bar-success progress-bar-striped active align-middle bg-info" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+            <span id="current-progress"></span>
+          </div>
+
+    </div>
+    <br/>
+      <br/>
+    <div id="file_upload_controls"  style="display:none;">
+        Please choose a .csv and a .geojson file to begin
+        <label class="form-label" for="data_input">Pen Movement and Map Data</label><input class="form-control" type="file" id="data_input" multiple/>
+      </div>
+</div>
+
+<div class="container">
+
+
+
+
+    <div class="row mb-2">
+
+        <div class="col">
+               <div id="map_wrapper" >
+                    <div id="map"></div>
+                </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+             <div class="col">
+                    <div>
+
+                        <div class="input-group search_wrapper">
+                              <input id="search" type="text" class="form-control" placeholder="Search by Cow ID">
+                              <div class="input-group-append">
+                                <button class="btn  btn-primary" type="button" id="search_but"> <i class="bi bi-search"></i></button>
+                              </div>
+                      </div>
+                </div>
+             </div>
+            <div class="col-md-4 inline" id="filter_date">
+                <label class="form-check-label" for="filter_start_date">Start Date</label>
+                         <input id="filter_start_date" type="text" class="date_field"/>
+                         <span id="filter_date_to"></span>
+
+                <label class="form-check-label" for="filter_end_date">End Date</label>
+                         <input id="filter_end_date" type="text" class="date_field"/>
+                         <div class='filter_slider_box slider-range'></div>
+
+                <button class="btn btn-outline-secondary slider_toggle " onclick="record_manager.slider_toggle(this)" type="button"><i class="bi bi-play-fill"></i></button>
+
+            </div>
+            <div class="col">
+                <label class="form-check-label" for="filter_current_date">Current Date</label>
+                         <input id="filter_current_date" type="text" class="date_field"/>
+                <div class="btn-group" role="group" aria-label="date advance">
+                         <button class="btn btn-outline-secondary " onclick="record_manager.move_to_date(-1)" type="button"><i class="bi bi-arrow-left-short"></i></button>
+                         <button class="btn btn-outline-secondary " onclick="record_manager.move_to_date(1)" type="button"><i class="bi bi-arrow-right-short"></i></button>
+                </div>
+            </div>
+            <div class="col" >
+                Total Cows: <span id="total_items"></span> <br/>
+                Clinical Cows: <span id="total_sick"></span> <br/>
+                Recovered Cows: <span id="total_well"></span>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="data_table_wrapper">
+            <div id="data_table_total" class="float-left">
+                <table>
+                    <tr>
+                        <td>
+                            <span class="total_results" ></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="total_showing"></span>
+                        </td>
+                        <td>
+                            <div class="data_table_spinner_wrapper">
+                                <div id="data_table_spinner" class="spinner-border spinner-border-sm" role="status">
+                                  <span class="sr-only"></span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="data_table_select" class="float-left"></div>
+
+            <a class='fa fa-times btn data_table_close' onclick='table_manager.close()'></a>
+            <div id ="data_table"></div>
+        </div>
+
+    </div>
+
+</div>
+
+
+</body>
+</html>

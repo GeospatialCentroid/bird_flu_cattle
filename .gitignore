@@ -1,0 +1,5 @@
+.DS_Store
+*.docx
+*.xlsx
+.idea/
+/data
