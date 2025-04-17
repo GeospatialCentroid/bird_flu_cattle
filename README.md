@@ -42,8 +42,12 @@ The map itself allows you to zoom in and out of your farm and pan around.
 The pens are drawn in blue and their id number is displayed on top. The pens can be clicked to reveal a popup, 
 and clicking the **Show Pen Data** link reveals a table showing all the cows in the pen on that day.
 
-Cows are clustered within their pens, and the number on the cluster represents the count of clinical cows. 
-To change this number to either a precent of clinical cows, or simply the count of cows in the pen at that time, 
+Cows are clustered within their pens symbolized by circles, and the number on the circle represents the count of clinical cows. 
+The circles are colored white unless one or more clinical cows are present within the pen, 
+then for each clinical cow in the pen, the white becomes redder by 10%.
+If there is a recovered cow in the pen, a yellow outer circle is added around the cluster.
+
+To change this cluster number to either a precent of clinical cows, or simply the count of cows in the pen at that time, 
 use the *Cluster Number* dropdown on the bottom right of the map (above the legend).
 Clicking the cluster reveals all the cows in that pen on that day, and they are colored based on the legend.
 Clicking on a cow shows it's popup information and to see its movement history, click the **Show Movement History Link**, to reveal a table view of its data.
