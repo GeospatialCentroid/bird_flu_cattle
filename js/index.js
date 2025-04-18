@@ -76,7 +76,9 @@ check_requirements=function(_file,_data){
 //        initialize_interface(required_files[".csv"].data,true)
 
         record_manager.process_csv(required_files[".csv"].data,record_manager)
+        $("#data_file").html(required_files[".csv"].file_name)
         layer_manager.create_geojson(JSON.parse(required_files[".geojson"].data))
+        $("#map_file").html(required_files[".geojson"].file_name)
     }
 }
 load_data = function(url,type,call_back){
@@ -112,7 +114,6 @@ function store_svg(_data){
     html+="<tr><td class='marker_sick shadow'>"+svg+" </td><td>Clinical</td></tr>"
     html+="<tr><td class='marker_well shadow'>"+svg+" </td><td>Recovered</td></tr>"
     html+="</table>"
-    console.log("Hello")
     $("#legend").html(html)
 }
 
@@ -132,6 +133,8 @@ function initialize_interface(_data,wait){
     setup_map();
 
     load_data(config[0]["data"],"geojson",layer_manager.create_geojson)
+    $("#map_file").html(config[0]["data"])
+
     setup_records(config[1])
 
 }
@@ -202,7 +205,11 @@ function after_filter(){
 
     record_manager.join_data()
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
-    var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
+    //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
+    // dial the end date forward one day to account for view showing data up to but excluding the end date
+     console.log(end_date)
+   var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(1, 'day')
+    console.log(end_date)
    record_manager. complete_end_data(end_date)
    console.log(start_date.format('YYYY-MM-DD' ))
     record_manager.complete_start_data(start_date)

@@ -976,7 +976,7 @@ vertical-align: top;
 .marker-cluster-warn span {
     line-height: 30px;
 }
-
+.date_field {position: relative; z-index:10000;}
 /*
 .marker-cluster-medium {
     background-color: rgba(241, 211, 87, 0.6);

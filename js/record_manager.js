@@ -44,7 +44,7 @@ class Record_Manager {
 
       }, 100);
     //
-
+    $("#data_file").html(this.csv)
     this.load_csv(this.csv,this.process_csv)
     //
 //    $("#search").focus();
@@ -285,7 +285,7 @@ class Record_Manager {
     }
 
     populate_days(_array,_event_start,_event_end,_end_date){
-    // caled with sick_data,"FLU",end_date,true)
+        // called with sick_data,"FLU",end_date,true)
         //any record that has an EVENT labeled "FLU" should have a record
 
         for(var i=0;i<this.json_data.length;i++){
