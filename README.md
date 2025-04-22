@@ -2,66 +2,62 @@
 
 ## About
 
-The following application has been designed to visualize the movement of cows among pens
-to help understand the transmission of Bird Flu in cattle. This application runs within a web browser and has been designed to work with your herd movement data.
-The herd movement data must be loading into the application in order for the application to work, but this data is only stored in memory preventing others
-of accessing it.
+The following application has been designed to visualize the movement of dairy cattle between pens,
+to help inform transmission of Bird Flu (Influenza A Virus, subtype H5N1) in cattle. This application runs within a web browser and has been designed to work with your herd movement data.
+Herd movement data must be loaded into the application in order for it to work. This data is only stored in memory, which prevents others
+from accessing it.
 
 ## Requirements
-This application requires two files for it to run:
+This application requires two files:
 
-1. A comma separated variable (CSV) file (with extension .csv) listing herd movements containing the following
-   header columns: ID, CURRENT PEN, TO PEN, EVENT, and DATE
-   - ID: the cow ID
-   - CURRENT PEN: the current pen number the cow was in
-   - TO PEN: the pen number where the cow was moved
-   - EVENT: The reason for the move (note that 'FLU' and 'WELL') are used to drive a visual representation of cows in the app
-   - DATE: the day the event occurred in the format M/D/YY
+1. A comma separated variable (CSV; with extension .csv) file listing dates and cattle movements, with the following
+   column headers: ID, CURRENT PEN, TO PEN, EVENT, and DATE
+   - ID: the cow ID or other cow identifier
+   - CURRENT PEN: a number specifying the pen the cow is currently in
+   - TO PEN: a number specifying the pen the cow is moving to
+   - EVENT: a reason for moving the cow (note that 'FLU' and 'WELL') are used to drive a visual representation of cows in the current application
+   - DATE: the day the event and movement occurred, using format M/D/YY
     
-Additional columns can be added though they will just pass through and appear in the table view.
+Additional columns can be added, though they will appear in the table view only.
     
-2. A GeoJSON file (with extension .geojson) that contains polygons for the pens, with an 'id' for each pen.
-This GeoJSON file can be created using https://geojson.io. Start by navigating to the farm location
-   and use the polygon tool (the square icon) to create shapes outlining each of the pens.
-   After each shape is drawn, **click** within the shape to reveal it's popup, 
-   Enter 'id' (without quotes) into the left table cell, then enter the pen number in the right table cell,
-   and finally click **Save** from within the popup.
-   After all the pens (with 'id' numbers) have been added, clicking **Save** on the top left of the interface 
-   will save a GeoJSON file to your computer. 
+2. A GeoJSON file (with extension .geojson) that contains polygons specifying pen location, with an identifyer for each pen.
+This GeoJSON file can be created using https://geojson.io. A brief outline of how to create this file at the given web address is as follows:
+   - Navigate to the farm location by using an address in the search bar
+   - Use the polygon tool (the square icon) to create shapes outlining each pen denoted in the .csv file
+   - After creating each pen polygon, **click** within the shape to reveal a pop-up, enter 'id' (without quotes) into the left table cell, enter the pen number in the right table cell, click **Save** from within the popup.
+   - After adding all pens (with 'id' numbers), click **Save** on the top left of the interface. This will save a GeoJSON file to your computer. You will be able to reopen this within https://geojson.io to continue to edit 
+     the map, if needed. 
    
 ## Running the App
-Once you have both the required files on your computer, make sure they are saved in the same directory and then navigate to https://geospatialcentroid.github.io/bird_flu_cattle 
-On your file system, navigate to the folder where the required files are saved, and drag them on to the file input field of the application. 
-The application will load these files into memory and show the first day of the data, placing the cows in their respective pens on the map.
+Once you have both required files on your computer, make sure they are saved in the same directory. Navigate to https://geospatialcentroid.github.io/bird_flu_cattle. Within your file system, navigate to the folder where the required files are saved and drag them, in turn, to the file input field of the application. 
+The application will load these files into memory and show the first day of available data, which also places each cow in their respective pen on the map.
 
 ## Using the App
-The application provides many tools for you to explore your herd data.
+The application provides many tools for you to explore your herd data. These are described below. 
 
 ### The Map
-The map itself allows you to zoom in and out of your farm and pan around.
-The pens are drawn in blue and their id number is displayed on top. The pens can be clicked to reveal a popup, 
+The map itself allows you to zoom in and out of your farm and pan to different map areas.
+The pens are drawn in blue and their id number is displayed in the lower left hand corner. When clicked over, each pen will reveal a popup, 
 and clicking the **Show Pen Data** link reveals a table showing all the cows in the pen on that day.
 
-Cows are clustered within their pens symbolized by circles, and the number on the circle represents the count of clinical cows. 
-The circles are colored white unless one or more clinical cows are present within the pen, 
-then for each clinical cow in the pen, the white becomes redder by 10%.
-If there is a recovered cow in the pen, a yellow outer circle is added around the cluster.
+Circles symbolize the cows present within each pen, with the number on the circle representing the count of clinical cows (cows denoted as 'FLU' in the uploaded .csv). 
+The circles are colored white unless one or more clinical cows are present within the pen. In these cases there is will be a gradient of red shading to the circle; 10% darker for each clinical cow.
+If there is a recovered cow in the pen DESCRIBE HOW THE .CSV IS CALLED ON TO DETERMINE A RECOVERED COW, a yellow outer circle is added around the cluster.
 
-To change this cluster number to either a precent of clinical cows, or simply the count of cows in the pen at that time, 
-use the *Cluster Number* dropdown on the bottom right of the map (above the legend).
-Clicking the cluster reveals all the cows in that pen on that day, and they are colored based on the legend.
-Clicking on a cow shows it's popup information and to see its movement history, click the **Show Movement History Link**, to reveal a table view of its data.
+To change the cluster number to a percent of clinical cows or a count of cows in the pen at that time, use the *Cluster Number* dropdown on the bottom right of the map (above the legend).
+Clicking the cluster will reveal a diagram of all cows in that pen on that day, colored based on the legend (sick, recovered, not sick or recovered).
+Clicking on a particular cow will show its movement and event history, you can click the **Show Movement History Link**, to reveal a table view of this data.
 
 ### The Map Controls
 Moving from left to right, the controls below the map do the following:
-1. Search by Cow ID, enter a number into the input field to find where that particular cow is on the map.
-2. The Start and End Date fields allow you to adjust the range used to animate cow movements over time. 
+1. Cow ID look-up: enter a number into the input field to find where that particular cow is on the map.
+2. Start and End Date: these fields allow you to adjust the range used to animate cow movements over time. 
    The slider bar below these fields can also be used to adjust the start and end dates. 
-   Once your desired date range is set, clicking the **play** button will start the animation.
-3. The Current Date field updates as the animation progresses, or can be changed to any day within your data's range. 
-   The left and right arrows next to this field allow you to jump either forward or backwards in time.
+   Once a desired date range is set, clicking the **play** button will start the animation, moving between days at 0.3 sec/day.
+   The Current Date field will update as the animation progresses, but can also be changed to any day within the range of data uploaded. 
+   The left and right arrows next to this field allow you to move forward or backward in time.
 
 ### The Table View
 A table is created when either the **Show Pen Data** link or **Show Movement History** link is clicked. 
-This table shows an exploded view of the loaded data, where each herd movement event is converted to a start and end date range.
-Clicking a row in the table changes the current date to the start date of the row event and selects the corresponding cow ID on the map.
+This table shows an expanded view of the data, where each event has been converted to a start and end date range.
+Clicking a row in the table changes the current date to the date of the row event, and selects/highlights the corresponding cow on the map.
