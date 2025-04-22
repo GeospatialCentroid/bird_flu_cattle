@@ -15,7 +15,7 @@ This application requires two files:
    - ID: the cow ID or other cow identifier
    - CURRENT PEN: a number specifying the pen the cow is currently in
    - TO PEN: a number specifying the pen the cow is moving to
-   - EVENT: a reason for moving the cow (note that 'FLU' and 'WELL') are used to drive a visual representation of cows in the current application
+   - EVENT: a reason for moving the cow (note that 'FLU' and 'WELL' denote sick and recovered cows, respectively) are used to drive a visual representation of cows in the current application
    - DATE: the day the event and movement occurred, using format M/D/YY
     
 Additional columns can be added, though they will appear in the table view only.
@@ -36,17 +36,17 @@ The application will load these files into memory and show the first day of avai
 The application provides many tools for you to explore your herd data. These are described below. 
 
 ### The Map
-The map itself allows you to zoom in and out of your farm and pan to different map areas.
-The pens are drawn in blue and their id number is displayed in the lower left hand corner. When clicked over, each pen will reveal a popup, 
+You will be able to zoom in and out on the farm map, and pan to different map areas.
+The pens are drawn in blue and their id number is displayed in the lower left-hand corner. When clicked over, each pen will reveal a pop-up, 
 and clicking the **Show Pen Data** link reveals a table showing all the cows in the pen on that day.
 
-Circles symbolize the cows present within each pen, with the number on the circle representing the count of clinical cows (cows denoted as 'FLU' in the uploaded .csv). 
-The circles are colored white unless one or more clinical cows are present within the pen. In these cases there is will be a gradient of red shading to the circle; 10% darker for each clinical cow.
-If there is a recovered cow in the pen DESCRIBE HOW THE .CSV IS CALLED ON TO DETERMINE A RECOVERED COW, a yellow outer circle is added around the cluster.
+Overlaid on pens, circles symbolize the cows present within each pen, which we refer to here as a cluster number. The cluster number in the circle will initially represent the count of clinical cows (i.e. cows denoted as 'FLU' in the uploaded .csv). 
+The circles are colored white unless one or more clinical cows are present within the pen. In these instances there is will be a gradient of red shading to the circle; 10% darker for each clinical cow.
+If there is a recovered cow in the pen (i.e. cows denoted as 'WELL' in the uploaded .csv), a yellow outer layer is added to the circle.
 
-To change the cluster number to a percent of clinical cows or a count of cows in the pen at that time, use the *Cluster Number* dropdown on the bottom right of the map (above the legend).
-Clicking the cluster will reveal a diagram of all cows in that pen on that day, colored based on the legend (sick, recovered, not sick or recovered).
-Clicking on a particular cow will show its movement and event history, you can click the **Show Movement History Link**, to reveal a table view of this data.
+To change the cluster number to a percent of clinical cows or a count of cows in the pen at that time, use the *Cluster Number* dropdown on the bottom right of the map to make your selection.
+Clicking the circle with the specified cluster number will reveal a diagram of all cows in that pen on that day, colored based on the legend (sick, recovered, not sick or recovered).
+Clicking on a particular cow within this diagram will show its movement and event history. You can click the **Show Movement History Link** after selecting a cow to reveal a table view of this data.
 
 ### The Map Controls
 Moving from left to right, the controls below the map do the following:
