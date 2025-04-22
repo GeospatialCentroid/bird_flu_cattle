@@ -13,7 +13,8 @@ var usp={};// the url params object to be populated
 var map_manager;
 var layer_manager;
 
-var event_data={"sick":[],"well":[]}
+var event_data={"sick":[],"well":[],"orig_sick_pen":[]}
+
 
 var analytics_manager;
 
@@ -123,7 +124,7 @@ function store_svg(_data){
 function initialize_interface(_data,wait){
 
      config= $.csv.toObjects(_data.replaceAll('\t', ''))
-//   setup_params()
+  setup_params()
 
  table_manager = new Table_Manager({
     elm_wrap:"data_table_wrapper",
@@ -207,7 +208,6 @@ function after_filter(){
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
     // dial the end date forward one day to account for view showing data up to but excluding the end date
-     console.log(end_date)
    var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(1, 'day')
     console.log(end_date)
    record_manager. complete_end_data(end_date)
@@ -218,8 +218,18 @@ function after_filter(){
     console.log(end_date.format('YYYY-MM-DD' ))
     record_manager.populate_days(event_data["sick"],"FLU","WELL",end_date)
     record_manager.populate_days(event_data["well"],"WELL","FLU",end_date)
+
+    //create lists of all the pens with originating sick cows
+    record_manager.populate_days(event_data["orig_sick_pen"],"FLU",false,end_date)
+
+
     setTimeout(function(){
-    record_manager.search_by_date(start_date)
+      if(record_manager.params[0].date){
+            $("#filter_current_date").datepicker().val( record_manager.params[0].date)
+            $("#filter_current_date").trigger('change');
+         }else{
+            record_manager.search_by_date(start_date)
+         }
     },1000);
    //record_manager.generate_csv()
 }
@@ -231,29 +241,28 @@ function after_filter(){
     var p = "?f="+encodeURIComponent(rison.encode(record_manager.filters))
     +"&e="+rison.encode(map_manager.params)
 
-
-    if(layer_manager && typeof(layer_manager.layers_list)!="undefined"){
-        p+="&l="+rison.encode(layer_manager.layers_list)
-    }
-
-    if(typeof(record_manager.panel_name)!="undefined"){
-        // add the panel if available
-        p+="/"+record_manager.panel_name;
-    }
-    if(typeof(record_manager.display_resource_id)!="undefined"){
-        // add the display_resource_id if available
-        p+="/"+record_manager.display_resource_id;
-    }
-
-    if (record_manager.page_rows){
-        p +="&rows="+(record_manager.page_start+record_manager.page_rows)
-    }
-    if (record_manager.page_start){
-        p +="&start=0"
-    }
-    if (record_manager.sort_str){
-        p +="&sort="+record_manager.sort_str
-    }
+//    if(layer_manager && typeof(layer_manager.layers_list)!="undefined"){
+//        p+="&l="+rison.encode(layer_manager.layers_list)
+//    }
+//
+//    if(typeof(record_manager.panel_name)!="undefined"){
+//        // add the panel if available
+//        p+="/"+record_manager.panel_name;
+//    }
+//    if(typeof(record_manager.display_resource_id)!="undefined"){
+//        // add the display_resource_id if available
+//        p+="/"+record_manager.display_resource_id;
+//    }
+//
+//    if (record_manager.page_rows){
+//        p +="&rows="+(record_manager.page_start+record_manager.page_rows)
+//    }
+//    if (record_manager.page_start){
+//        p +="&start=0"
+//    }
+//    if (record_manager.sort_str){
+//        p +="&sort="+record_manager.sort_str
+//    }
 //    if (record_manager.fq_str){
 //        p +="&fq="+record_manager.fq_str
 //    }
@@ -267,5 +276,71 @@ function after_filter(){
        window.history.pushState(p, null, window.location.pathname+p.replaceAll(" ", "+").replaceAll("'", "~"))
         last_params = p
     }
+
+}
+
+create_plot= function(data){
+
+
+$("#plot").empty()
+    // set the dimensions and margins of the graph
+    var row_height=25
+    const margin = {top: 18, right: 8, bottom:20, left: 20},
+        width = 120 - margin.left - margin.right,
+        height = (row_height*(data.length+1)) - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    const svg = d3.select("#plot")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+
+    svg.append("text")
+        .attr("x", (0))
+        .attr("y", 0 - (margin.top / 2))
+        .style("font-size", "11px")
+         .style("font-weight", "bolder")
+         .style('fill', 'black')
+        .text("Originating Pen")
+
+
+    var extent = d3.extent(data, function(d) { return d.value; });
+
+      // Add X axis
+      const x = d3.scaleLinear()
+      .domain([0, extent[1]])
+      .range([ 0, width])
+
+      svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x).ticks(2,d3.format('0f'))).style('color', 'black')
+        .selectAll("text")
+          .attr("transform", "translate(-10,0)rotate(-45)")
+          .style("text-anchor", "end")
+           .style('color', 'black')
+
+      // Y axis
+      const y = d3.scaleBand()
+        .range([ 0, height ])
+        .domain(data.map(d => d.name))
+        .padding(.1);
+      svg.append("g")
+        .call(d3.axisLeft(y))
+        .style('color', 'black')
+
+      //Bars
+      svg.selectAll("myRect")
+        .data(data)
+        .join("rect")
+        .attr("x", x(0) )
+        .attr("y", d => y(d.name))
+        .attr("width", d => x(d.value))
+        .attr("height", y.bandwidth())
+        .attr("fill", "black")
+
+
 
 }

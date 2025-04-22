@@ -47,16 +47,12 @@ class Map_Manager {
   // create a reference to this for use during interaction
     var $this=this
 
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 
-                maxZoom: 19,
+            maxZoom: 19,
 
-                attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
-            }).addTo($this.map);
-
-
-
-
+            attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+        }).addTo($this.map);
 
     // specify popup options
     this.popup_options =
@@ -76,6 +72,9 @@ class Map_Manager {
 
             }
         })
+
+      this.add_plot();
+      this.add_label();
 
   }
 
@@ -146,9 +145,45 @@ class Map_Manager {
         L.control.myControl({
           position: 'bottomright'
         }).addTo(this.map);
-
+    }
+    add_plot(){
+     L.Control.MapPlot = L.Control.extend({
+            onAdd: function(map) {
+                var div = L.DomUtil.create('div','legend plot');
+                div.id = 'plot';
+                L.DomEvent.disableClickPropagation(div)
+                return div;
+            },
+            onRemove: function(map) {
+                // Nothing to do here
+            }
+        });
+        L.control.map_plot = function(opts) {
+            return new L.Control.MapPlot(opts);
+        }
+        L.control.map_plot({ position: 'bottomleft' }).addTo( this.map);
+    }
+    add_label(){
+         L.Control.MapPlot = L.Control.extend({
+            onAdd: function(map) {
+                var div = L.DomUtil.create('div','legend map_label');
+                div.id = 'map_label';
+                L.DomEvent.disableClickPropagation(div)
+                return div;
+            },
+            onRemove: function(map) {
+                // Nothing to do here
+            }
+        });
+        L.control.map_plot = function(opts) {
+            return new L.Control.MapPlot(opts);
+        }
+        L.control.map_plot({ position: 'topright' }).addTo( this.map);
 
     }
+
+
+
     show_highlight_geo_json(geo_json){
         var $this=this
         // when a researcher hovers over a resource show the bounds on the map

@@ -20,11 +20,18 @@ class Layer_Manager {
   create_geojson(_data){
         // create lookup chart too
         layer_manager.pen_center={}
-
+        //#b5ffb4
         layer_manager.poly = L.geoJson(_data, {
+            style: {
+                fillColor: '#b5ffb4',
+                weight: .2,
+                opacity: 1,
+                color: '#b5ffb4',
+                fillOpacity: 0.3
+            },
             onEachFeature: function (feature, layer) {
 
-                layer.bindTooltip("<span style='font-weight:bolder;font-size:14px;'>"+String(feature.properties.id)+'</span>', {permanent: true, opacity: 0.7,direction: "top",className: "my-labels"})
+                layer.bindTooltip("<span style='font-weight:bolder;font-size:14px;'>"+String(feature.properties.id)+'</span>', {permanent: true, opacity: 0.9,direction: "top",className: "polygon_label"})
 
 
                 var popup_content = "PEN ID: "+feature.properties.id+"<br/>"

@@ -124,8 +124,11 @@ class Record_Manager {
         if($this.params){
             //populate the filters if set
             browser_control=true
-            $this.set_filters()
-            $this.filter()
+//            $this.set_filters()
+//            $this.filter()
+            console.log($this.params)
+
+
             browser_control=false
         }else{
           $this.populate_search($this.json_data,true);
@@ -149,6 +152,7 @@ class Record_Manager {
     }
 
     add_date_search(start,end){
+        var  $this=this
         //date search
         $('#filter_date_checkbox').change(
             function(){
@@ -174,6 +178,10 @@ class Record_Manager {
          $("#filter_current_date").change( function() {
               record_manager.search_by_date(moment($("#filter_current_date").val(),'YYYY-MM-DD') )
 
+              $this.filters.date=$("#filter_current_date").val()
+
+              $("#map_label").html("<b>Date:</b> "+$("#filter_current_date").val())
+              save_params()
         });
 
         $("#filter_start_date").change( function() {
@@ -277,6 +285,7 @@ class Record_Manager {
         // remove extraneous/confusing attributes
         for(var i=0;i<this.json_data.length;i++){
           var t = this.json_data[i]
+          t["FROM PEN"]= t["CURRENT PEN"]
           delete t["TO PEN"]
           delete t["CURRENT PEN"]
           delete t["DATE"]
@@ -285,8 +294,9 @@ class Record_Manager {
     }
 
     populate_days(_array,_event_start,_event_end,_end_date){
-        // called with sick_data,"FLU",end_date,true)
-        //any record that has an EVENT labeled "FLU" should have a record
+        // called with event_data["sick"],"FLU","WELL",end_date)
+        // create a sub set of the data
+        //any record that has an EVENT labeled {_event_start} should have a record
 
         for(var i=0;i<this.json_data.length;i++){
           var t = this.json_data[i];
@@ -306,7 +316,7 @@ class Record_Manager {
                     end_date=_end_date.unix()
                 }
 
-                _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],'M/D/YY').unix(), "end_date": end_date})
+                _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],'M/D/YY').unix(), "end_date": end_date,"from_pen": t["FROM PEN"]})
             }
 
         }
@@ -346,6 +356,33 @@ class Record_Manager {
         $("#total_items").html(ids.length)
          $("#total_sick").html(ids_sick.length)
           $("#total_well").html(ids_well.length)
+
+        //
+        this.show_orig_sick_pen(_date.unix())
+    }
+    show_orig_sick_pen(_date){
+        var match_days=[]
+        var array=event_data["orig_sick_pen"]
+        for(var i=0;i<array.length;i++){
+            if(_date>=array[i]["start_date"] && _date<=array[i]["end_date"]){
+               match_days.push(array[i]);
+            }
+        }
+        // group by pen
+        var ids={}
+        for(var i=0;i<match_days.length;i++){
+            if(!ids?.[match_days[i]["from_pen"]]){
+                ids[match_days[i]["from_pen"]]=[]
+            }
+            ids[match_days[i]["from_pen"]].push(match_days[i])
+        }
+//        console.log(ids)
+        // convert to CSV
+        var data =[]
+        for(var i in ids){
+            data.push({"name":i,"value":ids[i].length})
+        }
+        create_plot(data.sort((a, b) => b.value - a.value)) // Ascending order)
     }
     show_data(_id,_attr,_at_date){
         var data=[];
@@ -449,7 +486,7 @@ class Record_Manager {
 //
         $this.slider_timeout=setTimeout(function(){
             $this.slider_step(_slider,_icon)
-        },300)
+        },1500*$("#playback_speed_dropdown").val())
     }
     slider_pause(_icon) {
         //stop the timer

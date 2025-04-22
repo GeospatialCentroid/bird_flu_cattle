@@ -49,7 +49,7 @@
      <script src="js/utils.js"></script>
     <link rel="stylesheet" href="css/style.css" />
 
-
+    <script src="https://d3js.org/d3.v6.js"></script>
 
 <body>
 <div class="overlay ">
@@ -82,7 +82,8 @@
 
         <div class="col">
                <div id="map_wrapper" >
-                    <div id="map"></div>
+                    <div id="map">
+                    </div>
                 </div>
 
         </div>
@@ -107,7 +108,10 @@
 
                 <label class="form-check-label" for="filter_end_date">End Date</label>
                          <input id="filter_end_date" type="text" class="date_field"/>
-                         <div class='filter_slider_box slider-range'></div>
+                 <div class="btn-group" role="group" aria-label="playback speed">
+                     Play Speed &nbsp;<select id="playback_speed_dropdown"><option value=0.5>0.5</option><option value=1 selected>Normal</option><option value=1.5>1.5</option></select>
+                 </div>
+                     <div class='filter_slider_box slider-range'></div>
 
                 <button class="btn btn-outline-secondary slider_toggle " onclick="record_manager.slider_toggle(this)" type="button"><i class="bi bi-play-fill"></i></button>
 

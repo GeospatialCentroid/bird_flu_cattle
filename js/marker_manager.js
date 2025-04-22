@@ -83,7 +83,7 @@ class Marker_Manager {
       var legend = L.control({position: 'bottomright'});
         legend.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'info legend');
-            div.innerHTML = 'Cluster Number<select id="count_display_dropdown"><option value=1>Clinical Count</option><option value=2>Clinical Percentage</option><option value=3>Cow Count</option></select>';
+            div.innerHTML = '<b>Cluster Number</b><select id="count_display_dropdown"><option value=1>Clinical Count</option><option value=2>Clinical Percentage</option><option value=3>Cow Count</option></select>';
             div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
             return div;
         };
@@ -142,7 +142,7 @@ class Marker_Manager {
     console.log("select_marker_by_id", _id)
        var $this=this
         this.marker_cluster.eachLayer(function (marker){
-            console.log(marker.getLatLng(), marker)
+           // console.log(marker.getLatLng(), marker)
            if(marker.options.icon.options._id==_id){
                  var visible_layer = $this.marker_cluster.getVisibleParent(marker);
                   if (visible_layer instanceof L.MarkerCluster) {
