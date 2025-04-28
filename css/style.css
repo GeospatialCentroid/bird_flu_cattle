@@ -824,8 +824,9 @@ body.modal-open {
     border-top-right-radius: 0.0rem;
 }
 #data_table_wrapper .btn {
-    width: auto;
-    height: 27px;
+    width: 20px;
+    height: 20px;
+    padding: 0 .15rem;
 }
 
 .disabled_link {

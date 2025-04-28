@@ -525,7 +525,7 @@ class Table_Manager {
         // remove the map highlight
         map_manager.map.removeLayer(map_manager.highlighted_feature);
     }
-    analytics_manager.track_event("table","close_table","layer_id",this.selected_layer_id)
+    //analytics_manager.track_event("table","close_table","layer_id",this.selected_layer_id)
   }
   download(filename, text) {
       var element = document.createElement('a');

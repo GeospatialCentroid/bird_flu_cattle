@@ -224,7 +224,7 @@ function after_filter(){
 
 
     setTimeout(function(){
-      if(record_manager.params[0].date){
+      if(record_manager.params && record_manager.params[0].date){
             $("#filter_current_date").datepicker().val( record_manager.params[0].date)
             $("#filter_current_date").trigger('change');
          }else{
@@ -282,7 +282,14 @@ function after_filter(){
 create_plot= function(data){
 
 
-$("#plot").empty()
+    $("#plot").empty()
+
+    if(data.length==0){
+        $("#plot").hide()
+        return
+    }
+     $("#plot").show()
+
     // set the dimensions and margins of the graph
     var row_height=25
     const margin = {top: 18, right: 8, bottom:20, left: 20},
