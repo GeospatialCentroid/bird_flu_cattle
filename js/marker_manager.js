@@ -117,7 +117,33 @@ class Marker_Manager {
 
             var marker=L.marker(location, {icon: this.get_marker_icon(obj["ID"],marker_manager.check_status(obj["ID"], moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()))})
             this.items.push(marker)
-            this.marker_cluster.addLayer( marker.bindPopup(popup_content))//
+            this.marker_cluster.addLayer( marker)//
+            marker.on('click', function(e) {
+                 // create and display popup on map
+              let popup = L.popup({ autoPanPadding: [200, 200],offset: [0, -10]})
+                .setLatLng(e.latlng)
+                .setContent(popup_content)
+                .openOn(map_manager.map);
+
+              // close event popup
+              popup.on("remove", function () {
+                 map_manager.hide_highlight_feature()
+              });
+                //show a polygon around the marker
+                var c=e.target._latlng
+
+                var amt=.000005
+                var coords =[[[c.lng+amt*2,c.lat+amt],[c.lng+amt*2,c.lat-amt],[c.lng-amt*2,c.lat-amt],[c.lng-amt*2,c.lat+amt],[c.lng+amt*2,c.lat+amt]]]
+               var geo_json={
+                    "type": "Feature",
+                    "properties": { },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": coords
+                    }
+                };
+                map_manager.show_highlight_geo_json(geo_json)
+            })
             return marker;
         }else{
             console.log(location, "not found",obj)
@@ -134,7 +160,9 @@ class Marker_Manager {
                      iconAnchor: [8, 16],
                     _id:id,
                      sick:_class=="marker_sick",
-                     well:_class=="marker_well"
+                     well:_class=="marker_well",
+                     sold:_class=="marker_sold",
+                     dead:_class=="marker_dead"
         });
 
     }
@@ -187,20 +215,33 @@ class Marker_Manager {
          * @param {number} _date the unix time.
          * @returns {string} the name of a class to style the item accordingly
          */
+        var marker_class = "marker_default"
 
         for(var i=0;i<event_data["sick"].length;i++){
             if(event_data["sick"][i]["id"]==_id && _date>=event_data["sick"][i]["start_date"] && _date<=event_data["sick"][i]["end_date"]){
-                return "marker_sick";
+                marker_class= "marker_sick";
             }
 
         }
         for(var i=0;i<event_data["well"].length;i++){
             if(event_data["well"][i]["id"]==_id && _date>=event_data["well"][i]["start_date"] && _date<=event_data["well"][i]["end_date"]){
-                return "marker_well";
+                marker_class= "marker_well";
             }
 
         }
-        return "marker_default";
+        for(var i=0;i<event_data["sold"].length;i++){
+            if(event_data["sold"][i]["id"]==_id && _date>=event_data["sold"][i]["start_date"] && _date<=event_data["sold"][i]["end_date"]){
+                marker_class= "marker_sold";
+            }
+
+        }
+        for(var i=0;i<event_data["dead"].length;i++){
+            if(event_data["dead"][i]["id"]==_id && _date>=event_data["dead"][i]["start_date"] && _date<=event_data["dead"][i]["end_date"]){
+                marker_class= "marker_dead";
+            }
+
+        }
+        return marker_class;
     }
    get_event_records(_id,_array){
          /**

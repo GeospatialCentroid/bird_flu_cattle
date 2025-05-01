@@ -340,7 +340,7 @@ class Table_Manager {
 
     for (var p in props){
         //todo add domain names (alias) for headers and pass database name to function for sorting
-          if(p!="_id"){
+          if(p!="_id" && p!="FROM PEN"){
              var sort_icon="<i/>"
              if(this.sort_col ==p){
                 sort_icon=this.get_sort_icon(this.sort_dir)
@@ -391,7 +391,7 @@ class Table_Manager {
         var csv_array=[]
         html+="<tr onclick='table_manager.highlight_feature(this,\""+id+"\")' ondblclick='table_manager.zoom_feature(this,\""+id+"\")'>"
         for (var p in _cols){
-            if(p!="_id"){
+            if(_cols[p]!="_id" && _cols[p]!="FROM PEN"){
                   var text = ""
                   if(_rows[i]?.properties){
                     text=_rows[i].properties[p]

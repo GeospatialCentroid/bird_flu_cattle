@@ -62,8 +62,8 @@
     <br/>
       <br/>
     <div id="file_upload_controls"  style="display:none;">
-        Please choose a .csv and a .geojson file to begin
-        <label class="form-label" for="data_input">Pen Movement and Map Data</label><input class="form-control" type="file" id="data_input" multiple/>
+        Please choose a   <span class="font-weight-bold">.csv</span> and a   <span class="font-weight-bold">.geojson</span> file to begin
+        <label class="form-label" for="data_input">Pen Movement and Map Data</label><input class="form-control" type="file" id="data_input" accept=".geojson,.csv" multiple/>
       </div>
 </div>
 
@@ -72,7 +72,9 @@
 
 <div class="row">
         <div class="col d-flex justify-content-between">
-             <span class="header_text">Bird Flu Cattle</span> Data File:<span id="data_file"></span> Map File:<span id="map_file"></span>
+             <span class="header_text">Bird Flu Cattle</span>
+            <span class="font-weight-bold">Data File:</span><span id="data_file"></span>
+            <span class="font-weight-bold">Map File:</span><span id="map_file"></span>
             <div id="git_but" ><a class="btn btn-default" href="https://github.com/GeospatialCentroid/bird_flu_cattle" target="git" data-toggle="tooltip" title="Go to Git Repo" data-original-title="Go to git Repo"><i class="bi bi-github"></i></a></div>
 
         </div>
@@ -102,14 +104,14 @@
                 </div>
              </div>
             <div class="col-md-4 inline" id="filter_date">
-                <label class="form-check-label" for="filter_start_date">Start Date</label>
+                <label class="form-check-label font-weight-bold" for="filter_start_date">Start Date</label>
                          <input id="filter_start_date" type="text" class="date_field"/>
                          <span id="filter_date_to"></span>
 
-                <label class="form-check-label" for="filter_end_date">End Date</label>
+                <label class="form-check-label font-weight-bold" for="filter_end_date">End Date</label>
                          <input id="filter_end_date" type="text" class="date_field"/>
                  <div class="btn-group" role="group" aria-label="playback speed">
-                     Play Speed &nbsp;<select id="playback_speed_dropdown"><option value=0.5>0.5</option><option value=1 selected>Normal</option><option value=1.5>1.5</option></select>
+                     <span class="font-weight-bold"> Play Speed</span> &nbsp;<select id="playback_speed_dropdown"><option value=0.5>0.5</option><option value=1 selected>Normal</option><option value=1.5>1.5</option></select>
                  </div>
                      <div class='filter_slider_box slider-range'></div>
 
@@ -117,7 +119,7 @@
 
             </div>
             <div class="col">
-                <label class="form-check-label" for="filter_current_date">Current Date</label>
+                <label class="form-check-label font-weight-bold" for="filter_current_date">Current Date</label>
                          <input id="filter_current_date" type="text" class="date_field"/>
                 <div class="btn-group" role="group" aria-label="date advance">
                          <button class="btn btn-outline-secondary " onclick="record_manager.move_to_date(-1)" type="button"><i class="bi bi-arrow-left-short"></i></button>
@@ -125,9 +127,12 @@
                 </div>
             </div>
             <div class="col" >
-                Total Cows: <span id="total_items"></span> <br/>
-                Clinical Cows: <span id="total_sick"></span> <br/>
-                Recovered Cows: <span id="total_well"></span>
+                <span class="font-weight-bold">Total Unique Cows:</span> <span id="total_items"></span> <br/>
+                 <span class="font-weight-bold">Duplicate Cows:</span> <span id="duplicate_items"></span> <br/>
+                 <span class="font-weight-bold">Clinical Cows:</span> <span id="total_sick"></span> <br/>
+                 <span class="font-weight-bold">Recovered Cows:</span> <span id="total_well"></span><br/>
+                 <span class="font-weight-bold">Sold Cows:</span> <span id="total_sold"></span><br/>
+                 <span class="font-weight-bold">Dead Cows:</span> <span id="total_dead"></span><br/>
             </div>
 
         </div>

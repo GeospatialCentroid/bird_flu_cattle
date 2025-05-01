@@ -206,6 +206,10 @@ class Map_Manager {
         }
 
     }
+     hide_highlight_feature(){
+        this.map.removeLayer(this.highlighted_feature);
+        delete this.highlighted_feature;
+    }
     get_selected_layer(){
         // start with the last layer (top) if not yet set - check to make use the previous selection still exists
         if (!this.selected_layer_id || !layer_manager.is_on_map(this.selected_layer_id) ){

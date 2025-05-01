@@ -13,7 +13,7 @@ var usp={};// the url params object to be populated
 var map_manager;
 var layer_manager;
 
-var event_data={"sick":[],"well":[],"orig_sick_pen":[]}
+var event_data={"sick":[],"well":[],"orig_sick_pen":[],"sold":[],"dead":[]}
 
 
 var analytics_manager;
@@ -114,6 +114,8 @@ function store_svg(_data){
     html+="<tr><td width=30>"+svg+" </td><td>Non-clinical</td></tr>"
     html+="<tr><td class='marker_sick shadow'>"+svg+" </td><td>Clinical</td></tr>"
     html+="<tr><td class='marker_well shadow'>"+svg+" </td><td>Recovered</td></tr>"
+    html+="<tr><td class='marker_sold shadow'>"+svg+" </td><td>Sold</td></tr>"
+    html+="<tr><td class='marker_dead shadow'>"+svg+" </td><td>Died</td></tr>"
     html+="</table>"
     $("#legend").html(html)
 }
@@ -209,7 +211,6 @@ function after_filter(){
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
     // dial the end date forward one day to account for view showing data up to but excluding the end date
    var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(1, 'day')
-    console.log(end_date)
    record_manager. complete_end_data(end_date)
    console.log(start_date.format('YYYY-MM-DD' ))
     record_manager.complete_start_data(start_date)
@@ -221,6 +222,11 @@ function after_filter(){
 
     //create lists of all the pens with originating sick cows
     record_manager.populate_days(event_data["orig_sick_pen"],"FLU",false,end_date)
+
+    //sold
+    record_manager.populate_days(event_data["sold"],"SOLD",false,end_date)
+    //Died
+    record_manager.populate_days(event_data["dead"],"DIED",false,end_date)
 
 
     setTimeout(function(){

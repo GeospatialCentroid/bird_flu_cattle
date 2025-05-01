@@ -37,8 +37,19 @@ class Layer_Manager {
                 var popup_content = "PEN ID: "+feature.properties.id+"<br/>"
 
                 popup_content+="<a href='javascript:void(0);' onclick='record_manager.show_data("+feature.properties.id+",\"IN PEN\",true)'>Show Pen Data</a>"
-               layer.addEventListener("click", () => {
-                  layer.bindPopup(popup_content);
+               layer.on('click', function(e) {
+                  map_manager.show_highlight_geo_json(feature)
+                  let popup = L.popup()
+                .setLatLng(e.latlng)
+                .setContent(popup_content)
+                .openOn(map_manager.map);
+                  // close event popup
+                  popup.on("remove", function () {
+                     map_manager.hide_highlight_feature()
+                  });
+
+
+
                 });
             }
         })
@@ -51,13 +62,16 @@ class Layer_Manager {
         }
 
          layer_manager.poly.eachLayer(function(layer) {
-            layer_manager.pen_center[layer.feature.properties.id]=layer.getCenter()
+            layer_manager.pen_center[String(layer.feature.properties.id)]=layer.getCenter()
          });
-
     }
     get_poly_location(_id){
         // cows are positioned in pens each pen should know how many cows it contains
-       return layer_manager.pen_center[Number(_id)]
+        if(!String(_id) in layer_manager.pen_center){
+            return
+        }
+
+       return layer_manager.pen_center[String(_id)]
 
     }
 //zoom_marker(_id){

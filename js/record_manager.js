@@ -126,7 +126,7 @@ class Record_Manager {
             browser_control=true
 //            $this.set_filters()
 //            $this.filter()
-            console.log($this.params)
+            console.log(params,$this.params)
 
 
             browser_control=false
@@ -325,8 +325,11 @@ class Record_Manager {
    search_by_date(_date){
        // let's search for records that fall on a date
       var ids=[] // store the unique ids
+      var duplicate_ids=[] // store the unique ids
       var ids_sick=[] // track sick
       var ids_well=[] // track well
+       var ids_sold=[] // track well
+        var ids_dead=[] // track well
        marker_manager.reset()
        for(var i=0;i<this.json_data.length;i++){
              var t = this.json_data[i]
@@ -338,24 +341,42 @@ class Record_Manager {
 
                 }else{
                    // console.log(t["ID"], "is on the map more than once")
-
+                    duplicate_ids.push(t["ID"])
                 }
                 //console.log("match",t,_date.format('M/D/YY'),t["START DATE"].format('M/D/YY'), t["END DATE"].format('M/D/YY'))
                 // show the cows on the map
                 //console.log(t["IN PEN"])
                 // get the pen id
-                var marker = marker_manager.create_marker(t,layer_manager.get_poly_location(t["IN PEN"]));
-                if(marker.options.icon.options.sick){
-                    ids_sick.push(marker)
-                }
-                 if(marker.options.icon.options.well){
-                    ids_well.push(marker)
+                var location = layer_manager.get_poly_location(t["IN PEN"])
+                if(location){
+
+                    var marker = marker_manager.create_marker(t,location);
+
+
+                    if(marker.options.icon.options.sick){
+                        ids_sick.push(marker)
+                    }
+                     if(marker.options.icon.options.well){
+                        ids_well.push(marker)
+                    }
+                     if(marker.options.icon.options.sold){
+                        ids_sold.push(marker)
+                    }
+                     if(marker.options.icon.options.dead){
+                        ids_dead.push(marker)
+                    }
+                }else{
+                    //console.log(t["IN PEN"], "not found")
                 }
            }
         }
         $("#total_items").html(ids.length)
+        $("#duplicate_items").html(duplicate_ids.length)
+
          $("#total_sick").html(ids_sick.length)
           $("#total_well").html(ids_well.length)
+          $("#total_sold").html(ids_sold.length)
+          $("#total_dead").html(ids_dead.length)
 
         //
         this.show_orig_sick_pen(_date.unix())
@@ -486,7 +507,7 @@ class Record_Manager {
 //
         $this.slider_timeout=setTimeout(function(){
             $this.slider_step(_slider,_icon)
-        },1500*$("#playback_speed_dropdown").val())
+        },500*$("#playback_speed_dropdown").val())
     }
     slider_pause(_icon) {
         //stop the timer
