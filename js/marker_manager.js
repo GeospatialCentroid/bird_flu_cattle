@@ -182,7 +182,7 @@ class Marker_Manager {
                      });
                      visible_layer.spiderfy();
                  }else{
-
+                    console.log(marker)
                     map_manager.map.setView(marker.getLatLng(), 19);
                     marker.fire('click');
                 }

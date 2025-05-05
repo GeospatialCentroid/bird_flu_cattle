@@ -209,8 +209,8 @@ function after_filter(){
     record_manager.join_data()
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
-    // dial the end date forward one day to account for view showing data up to but excluding the end date
-   var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(1, 'day')
+    // dial the end date back one day to account for view showing data up to but excluding the end date
+   var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
    record_manager. complete_end_data(end_date)
    console.log(start_date.format('YYYY-MM-DD' ))
     record_manager.complete_start_data(start_date)
@@ -227,8 +227,6 @@ function after_filter(){
     record_manager.populate_days(event_data["sold"],"SOLD",false,end_date)
     //Died
     record_manager.populate_days(event_data["dead"],"DIED",false,end_date)
-
-
     setTimeout(function(){
       if(record_manager.params && record_manager.params[0].date){
             $("#filter_current_date").datepicker().val( record_manager.params[0].date)

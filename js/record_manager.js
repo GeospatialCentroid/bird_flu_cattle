@@ -306,7 +306,8 @@ class Record_Manager {
                 if(_event_end){
                     for(var j=i;j<this.json_data.length;j++){
                          var u = this.json_data[j]
-                         if(u["EVENT"].trim()==_event_end){
+                         // make sure the next event is later that the first
+                         if(u["EVENT"].trim()==_event_end && moment(t["START DATE"],'M/D/YY').unix() < moment(u["START DATE"],'M/D/YY').unix()){
                             end_date=moment(u["START DATE"],'M/D/YY').unix()
                             break;
                          }
@@ -330,6 +331,7 @@ class Record_Manager {
       var ids_well=[] // track well
        var ids_sold=[] // track well
         var ids_dead=[] // track well
+        this.pen_warning={}
        marker_manager.reset()
        for(var i=0;i<this.json_data.length;i++){
              var t = this.json_data[i]
@@ -367,6 +369,7 @@ class Record_Manager {
                     }
                 }else{
                     //console.log(t["IN PEN"], "not found")
+                    this.create_pen_warning(t["IN PEN"])
                 }
            }
         }
@@ -380,6 +383,24 @@ class Record_Manager {
 
         //
         this.show_orig_sick_pen(_date.unix())
+        this.show_pen_warning()
+    }
+    create_pen_warning(pen,t){
+        // track the unique pens and given a warning
+        if(!(String(pen) in this.pen_warning)){
+            this.pen_warning[String(pen)]=[]
+        }
+        this.pen_warning[String(pen)].push(t)
+
+    }
+     show_pen_warning(pen,t){
+        // track the unique pens and given a warning
+        var html=""
+       for(var i in this.pen_warning){
+        html+="Pen: "+ i +" has "+this.pen_warning[i].length +" not shown </br>"
+
+       }
+        $("#warning").html(html)
     }
     show_orig_sick_pen(_date){
         var match_days=[]
