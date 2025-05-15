@@ -16,7 +16,7 @@ This application requires two files:
    - CURRENT PEN: a number specifying the pen the cow is currently in
    - TO PEN: a number specifying the pen the cow is moving to
    - EVENT: a reason for moving the cow (note that 'FLU' and 'WELL' denote sick and recovered cows, respectively) are used to drive a visual representation of cows in the current application
-   - DATE: the day the event and movement occurred, using format M/D/YY
+   - DATE: the day the event and movement occurred, using format M/D/YYYY
     
 Additional columns can be added, though they will appear in the table view only.
     

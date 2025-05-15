@@ -31,6 +31,7 @@ class Record_Manager {
     // a dictionary of all the filters set
     this.filters={}
     this.progress_interval;
+    this.date_format='M/D/YYYY'
    }
   init() {
     var $this=this
@@ -97,7 +98,7 @@ class Record_Manager {
                 for (var c in $this.date){
                 var val = $this.json_data[i][$this.date[c]]
                       if(val!=""){
-                       date_list.push(moment(val,'M/D/YYYY'))
+                       date_list.push(moment(val,$this.date_format))
                       }
                  }
             }
@@ -238,8 +239,8 @@ class Record_Manager {
                      // for clarity add an "IN PEN"
                      t["IN PEN"]=t["TO PEN"]
                     // clean up the data by using 'start' and 'end' as date objects
-                     t["START DATE"]=moment(t["DATE"],'M/D/YY')
-                     t["END DATE"]=moment(c["DATE"],'M/D/YY')
+                     t["START DATE"]=moment(t["DATE"],this.date_format)
+                     t["END DATE"]=moment(c["DATE"],this.date_format)
 
                     break
                 }
@@ -254,7 +255,7 @@ class Record_Manager {
              if(!t.hasOwnProperty("END DATE")){
                 // for clarity add an "IN PEN"
                t["IN PEN"]=t["TO PEN"]
-               t["START DATE"]=moment(t["DATE"],'M/D/YY')
+               t["START DATE"]=moment(t["DATE"],this.date_format)
                t["END DATE"]=_end_date
 
              }
@@ -269,12 +270,12 @@ class Record_Manager {
              if($.inArray(t["ID"], ids)==-1){
                ids.push(t["ID"])
                //
-               if(!moment(t["DATE"],'M/D/YY').isSame(_start_date)){
+               if(!moment(t["DATE"],this.date_format).isSame(_start_date)){
                record_manager.json_data.push({
                 "ID":t["ID"],
                 "IN PEN":t["CURRENT PEN"],
                 "START DATE":_start_date,
-                "END DATE":moment(t["DATE"],'M/D/YY'),
+                "END DATE":moment(t["DATE"],this.date_format),
                 "EVENT":"Start"
                })
               }
@@ -307,8 +308,8 @@ class Record_Manager {
                     for(var j=i;j<this.json_data.length;j++){
                          var u = this.json_data[j]
                          // make sure the next event is later that the first
-                         if(u["EVENT"].trim()==_event_end && moment(t["START DATE"],'M/D/YY').unix() < moment(u["START DATE"],'M/D/YY').unix()){
-                            end_date=moment(u["START DATE"],'M/D/YY').unix()
+                         if(u["EVENT"].trim()==_event_end && moment(t["START DATE"],this.date_format).unix() < moment(u["START DATE"],this.date_format).unix()){
+                            end_date=moment(u["START DATE"],this.date_format).unix()
                             break;
                          }
                     }
@@ -317,7 +318,7 @@ class Record_Manager {
                     end_date=_end_date.unix()
                 }
 
-                _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],'M/D/YY').unix(), "end_date": end_date,"from_pen": t["FROM PEN"]})
+                _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],this.date_format).unix(), "end_date": end_date,"from_pen": t["FROM PEN"]})
             }
 
         }
@@ -345,7 +346,7 @@ class Record_Manager {
                    // console.log(t["ID"], "is on the map more than once")
                     duplicate_ids.push(t["ID"])
                 }
-                //console.log("match",t,_date.format('M/D/YY'),t["START DATE"].format('M/D/YY'), t["END DATE"].format('M/D/YY'))
+
                 // show the cows on the map
                 //console.log(t["IN PEN"])
                 // get the pen id
