@@ -311,6 +311,7 @@ class Table_Manager {
   }
   //
   generate_table(_features){
+    this.csv=""
     this.id="id";//reset
     this.elm_wrap.show()
 
@@ -528,18 +529,23 @@ class Table_Manager {
     //analytics_manager.track_event("table","close_table","layer_id",this.selected_layer_id)
   }
   download(filename, text) {
-      var element = document.createElement('a');
-      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-      element.setAttribute('download', filename);
-
-      element.style.display = 'none';
-      document.body.appendChild(element);
-
-      element.click();
-
-      document.body.removeChild(element);
+       this.generate_csv()
     }
+    generate_csv(){
 
+        this.download_file( this.csv, "output.csv", "text/plain");
+    }
+    download_file(data, filename, mimeType) {
+      const blob = new Blob([data], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
     get_combined_table_html(header,cols){
     var html= "<table class='fixed_headers'><thead><tr>"
     for (var p in header){

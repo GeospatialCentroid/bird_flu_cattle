@@ -625,6 +625,12 @@ position: absolute;
     top: 0;
     right: 0;
 }
+.data_table_download{
+    position: absolute;
+    top: 0;
+    right: 30px;
+}
+
 #table_bounds_checkbox{
     margin-left:10px;
 }
@@ -824,9 +830,10 @@ body.modal-open {
     border-top-right-radius: 0.0rem;
 }
 #data_table_wrapper .btn {
-    width: 20px;
+
     height: 20px;
     padding: 0 .15rem;
+    width: 22px;
 }
 
 .disabled_link {

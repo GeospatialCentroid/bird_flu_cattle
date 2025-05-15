@@ -36,7 +36,7 @@ class Layer_Manager {
 
                 var popup_content = "PEN ID: "+feature.properties.id+"<br/>"
 
-                popup_content+="<a href='javascript:void(0);' onclick='record_manager.show_data("+feature.properties.id+",\"IN PEN\",true)'>Show Pen Data</a>"
+                popup_content+="<a href='javascript:void(0);' onclick='record_manager.show_data(\""+feature.properties.id+"\",\"IN PEN\",true)'>Show Pen Data</a>"
                layer.on('click', function(e) {
                   map_manager.show_highlight_geo_json(feature)
                   let popup = L.popup()

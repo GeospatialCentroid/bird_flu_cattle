@@ -119,9 +119,10 @@ class Marker_Manager {
             this.items.push(marker)
             this.marker_cluster.addLayer( marker)//
             marker.on('click', function(e) {
+                console.log("click")
                  // create and display popup on map
               let popup = L.popup({ autoPanPadding: [200, 200],offset: [0, -10]})
-                .setLatLng(e.latlng)
+                .setLatLng(e.target._latlng)
                 .setContent(popup_content)
                 .openOn(map_manager.map);
 
@@ -131,7 +132,6 @@ class Marker_Manager {
               });
                 //show a polygon around the marker
                 var c=e.target._latlng
-
                 var amt=.000005
                 var coords =[[[c.lng+amt*2,c.lat+amt],[c.lng+amt*2,c.lat-amt],[c.lng-amt*2,c.lat-amt],[c.lng-amt*2,c.lat+amt],[c.lng+amt*2,c.lat+amt]]]
                var geo_json={
@@ -178,14 +178,13 @@ class Marker_Manager {
                       // Make sure it will get highlighted once revealed.
                       $this.marker_cluster.once('spiderfied', function() {
                         marker.fire('click');
-                         map_manager.map.setView(marker.getLatLng(), 19);
                      });
                      visible_layer.spiderfy();
                  }else{
-                    console.log(marker)
-                    map_manager.map.setView(marker.getLatLng(), 19);
                     marker.fire('click');
                 }
+                 map_manager.map.setView(marker.getLatLng(), 18);
+                 console.log(marker)
            }
 
          });

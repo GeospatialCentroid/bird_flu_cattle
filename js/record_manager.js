@@ -97,10 +97,11 @@ class Record_Manager {
                 for (var c in $this.date){
                 var val = $this.json_data[i][$this.date[c]]
                       if(val!=""){
-                       date_list.push(moment(val,'M/D/YY'))
+                       date_list.push(moment(val,'M/D/YYYY'))
                       }
                  }
             }
+
         }
 
         //sort
@@ -131,10 +132,10 @@ class Record_Manager {
 
             browser_control=false
         }else{
-          $this.populate_search($this.json_data,true);
+
 //             $this.filter()
         }
-
+        $this.populate_search($this.json_data,true);
 
         //-------------
         //hide loader
@@ -159,7 +160,6 @@ class Record_Manager {
               record_manager.delay_date_change();
             }
         );
-
         $("#filter_start_date").datepicker({ dateFormat: 'yy-mm-dd',
                 minDate:start.format('YYYY-MM-DD'),
                 maxDate: end.format('YYYY-MM-DD')}).val(start.format('YYYY-MM-DD'))
@@ -457,37 +457,8 @@ class Record_Manager {
          table_manager.generate_table(data)
          table_manager.show_totals()
     }
-    generate_csv(){
-        // start by printing the header
-        var lines=""
-        var header =""
-        for (var v in this.json_data[0]){
-            header+=","+v
-        }
-        lines+=header.substring(1)+"\n"
 
-        for(var i=0;i<this.json_data.length;i++){
-          var t = this.json_data[i]
-            var line=""
-            for (var v in t){
-               line+=","+t[v]
 
-            }
-            lines+=line.substring(1)+"\n"
-        }
-        download_file(lines, "output.csv", "text/plain");
-    }
-    download_file(data, filename, mimeType) {
-      const blob = new Blob([data], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
 
     //------- animate slider
 

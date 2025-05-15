@@ -33,6 +33,8 @@ $( function() {
 
     $(document).on('change','#data_input',function(){on_file_change(event);})
 
+    //$('#model_data_form').modal('show');
+
 
     $("#map_wrapper").resizable({
     handles: 's',
@@ -42,46 +44,6 @@ $( function() {
 });
 });
 
-on_file_change= function(event){
-      const files=event.target.files
-
-        for (const file of files) {
-             const reader = new FileReader();
-
-            reader.onload = function(e) {
-              check_requirements(file.name,e.target.result)
-            };
-
-            reader.onerror = function() {
-              console.error("Error reading the file");
-            };
-            reader.readAsText(file); // or readAsDataURL, readAsArrayBuffer, etc.
-        }
-}
-
-var required_files={".csv":{},".geojson":{}}
-check_requirements=function(_file,_data){
-    //This app requires both a csv and a geojson file
-    var ext =_file.substring(_file.lastIndexOf("."))
-    required_files[ext]["file_name"]=_file
-     required_files[ext]["data"]=_data
-
-     var requirements_met=true
-     for(var r in required_files){
-        if(Object.keys(required_files[r]).length===0){
-            requirements_met=false
-        }
-     }
-    if(requirements_met){
-        // the data has been loaded via an upload form take the back door
-//        initialize_interface(required_files[".csv"].data,true)
-
-        record_manager.process_csv(required_files[".csv"].data,record_manager)
-        $("#data_file").html(required_files[".csv"].file_name)
-        layer_manager.create_geojson(JSON.parse(required_files[".geojson"].data))
-        $("#map_file").html(required_files[".geojson"].file_name)
-    }
-}
 load_data = function(url,type,call_back){
     // type csv = should be 'text' and then converted
     // geojson = should be 'json' and then converted
@@ -203,9 +165,10 @@ function setup_records(_data){
      // initialize this filtering system
 
      record_manager.init();
+
 }
 function after_filter(){
-
+     setup_fields()
     record_manager.join_data()
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
@@ -226,7 +189,7 @@ function after_filter(){
     //sold
     record_manager.populate_days(event_data["sold"],"SOLD",false,end_date)
     //Died
-    record_manager.populate_days(event_data["dead"],"DIED",false,end_date)
+    record_manager.populate_days(event_data["dead"],"DEAD",false,end_date)
     setTimeout(function(){
       if(record_manager.params && record_manager.params[0].date){
             $("#filter_current_date").datepicker().val( record_manager.params[0].date)
@@ -296,7 +259,7 @@ create_plot= function(data){
 
     // set the dimensions and margins of the graph
     var row_height=25
-    const margin = {top: 18, right: 8, bottom:20, left: 20},
+    const margin = {top: 18, right: 0, bottom:20, left: 40},
         width = 120 - margin.left - margin.right,
         height = (row_height*(data.length+1)) - margin.top - margin.bottom;
 
