@@ -1,8 +1,35 @@
+
+function  init_event_prompt(data){
+    // populate the event prompt based on the loaded config
+    setup_fields()
+    $(".picker").drawrpalette("destroy");
+    event_settings = data.event_settings // store the settings
+      for (var e in event_settings){
+        if(e>0){
+        // make a duplicate
+        duplicate_row($(".duplicate").last())
+        }
+       $("#data_form .row:last-child").each(function( index ) {
+                 $(this).find(":input").each(function( index ) {
+                if(typeof($(this).attr("data"))!="undefined"){
+                     $(this).val(event_settings[e][$(this).attr("data")])
+                }
+              });
+        });
+      }
+      $(".picker").drawrpalette()
+     show_model()
+}
+function show_model(){
+      $('#model_data_form').modal('show');
+}
+
 //--Dynamic event tracking
 duplicate_row=function(elm){
       $(elm).parent().parent().parent().append($(elm).parent().parent().clone())
-         $(".picker:last").drawrpalette();
-
+}
+fix_picker =function(){
+    $(".picker:last").drawrpalette();
 }
 delete_row=function(elm){
     $(elm).parent().parent().remove()
@@ -11,18 +38,23 @@ delete_row=function(elm){
 setup_fields=function(){
     // get all the unique events and populate the dropdowns
 
-
-
      $('.start_dropdown').append(get_dropdown('start'))
      $('.end_dropdown').append(get_dropdown('end'))
-     $(".picker").drawrpalette();
+
+
 }
+
 get_dropdown=function(name){
     var select = $('<select data="'+name+'">');
-    for(var i in record_manager.catalog.EVENT){
+     // allow the end dropdown to have no selection
+     if(name=='end'){
+          select.append($('<option selected>', {  value: 'None',text: 'None' }));
+     }
+    for(var i in record_manager.catalog.EVENT.sort()){
         var v = record_manager.catalog.EVENT[i]
         select.append($('<option>', {  value: v,text: v }));
      }
+
      return select
 }
 process_data_forms=function(){
@@ -37,8 +69,8 @@ process_data_forms=function(){
        });
       posts.push(p)
     });
-     $('#model_data_form').modal('close');
-    console.log(posts)
+     $('#model_data_form').modal('hide');
+    setup_interface(posts)
 
 }
 //----------

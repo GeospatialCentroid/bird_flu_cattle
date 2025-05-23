@@ -13,7 +13,8 @@ var usp={};// the url params object to be populated
 var map_manager;
 var layer_manager;
 
-var event_data={"sick":[],"well":[],"orig_sick_pen":[],"sold":[],"dead":[]}
+var event_settings=false; // the dynamic details either loaded or configured while the app is running
+var event_data={}
 
 
 var analytics_manager;
@@ -33,7 +34,7 @@ $( function() {
 
     $(document).on('change','#data_input',function(){on_file_change(event);})
 
-    //$('#model_data_form').modal('show');
+
 
 
     $("#map_wrapper").resizable({
@@ -49,6 +50,8 @@ load_data = function(url,type,call_back){
     // geojson = should be 'json' and then converted
 
      if(type=='geojson'){
+        type='json'
+    }else if (type=='json'){
         type='json'
     }else{
         type='text'
@@ -69,25 +72,10 @@ load_data = function(url,type,call_back){
      });
 
 }
-function store_svg(_data){
-    svg = _data
-    // create the legend
-    html="<table>"
-    html+="<tr><td width=30>"+svg+" </td><td>Non-clinical</td></tr>"
-    html+="<tr><td class='marker_sick shadow'>"+svg+" </td><td>Clinical</td></tr>"
-    html+="<tr><td class='marker_well shadow'>"+svg+" </td><td>Recovered</td></tr>"
-    html+="<tr><td class='marker_sold shadow'>"+svg+" </td><td>Sold</td></tr>"
-    html+="<tr><td class='marker_dead shadow'>"+svg+" </td><td>Died</td></tr>"
-    html+="</table>"
-    $("#legend").html(html)
-}
-
-
-
 
 function initialize_interface(_data,wait){
 
-     config= $.csv.toObjects(_data.replaceAll('\t', ''))
+  config= $.csv.toObjects(_data.replaceAll('\t', ''))
   setup_params()
 
  table_manager = new Table_Manager({
@@ -143,7 +131,7 @@ function setup_map(){
 
      map_manager.init()
 
-     load_data("images/cow.svg","",store_svg)
+
 
      layer_manager = new Layer_Manager({map:map_manager.map});
 
@@ -168,37 +156,79 @@ function setup_records(_data){
 
 }
 function after_filter(){
-     setup_fields()
+
     record_manager.join_data()
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
-    // dial the end date back one day to account for view showing data up to but excluding the end date
-   var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
-   record_manager. complete_end_data(end_date)
+    var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1])
+    //todo  dial the INTERFACE end date back one day to account for view showing data up to but excluding the end date
+   //var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
+   record_manager.complete_end_data(end_date)
    console.log(start_date.format('YYYY-MM-DD' ))
     record_manager.complete_start_data(start_date)
 
     record_manager.clean_data()
     console.log(end_date.format('YYYY-MM-DD' ))
-    record_manager.populate_days(event_data["sick"],"FLU","WELL",end_date)
-    record_manager.populate_days(event_data["well"],"WELL","FLU",end_date)
 
-    //create lists of all the pens with originating sick cows
-    record_manager.populate_days(event_data["orig_sick_pen"],"FLU",false,end_date)
+   //record_manager.generate_csv()
+    $("#model_data_form").on("hidden.bs.modal", function () {
+       process_data_forms();
+    });
+   load_data('settings_config.json','json',init_event_prompt)
+}
 
-    //sold
-    record_manager.populate_days(event_data["sold"],"SOLD",false,end_date)
-    //Died
-    record_manager.populate_days(event_data["dead"],"DEAD",false,end_date)
+function setup_interface(data){
+        event_settings = data
+      var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
+
+      for (var i in event_settings){
+            var obj=event_settings[i]
+            // create a style for each of the events to be tracked
+            $("<style type='text/css'> .marker_"+obj.label+" path { color:"+obj.color+";} </style>").appendTo("head");
+            event_data[obj.label]=[]
+            // create buckets with for all the config specified events to be tracked
+            record_manager.populate_days(event_data[obj.label],obj.start,obj.end,end_date)
+
+      }
+       load_data("images/cow.svg","",populate_legend)
+       populate_cow_list()
+       console.log(event_data)
+
     setTimeout(function(){
       if(record_manager.params && record_manager.params[0].date){
             $("#filter_current_date").datepicker().val( record_manager.params[0].date)
             $("#filter_current_date").trigger('change');
          }else{
-            record_manager.search_by_date(start_date)
+            record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())
          }
     },1000);
-   //record_manager.generate_csv()
+
+}
+function populate_legend(_data){
+    svg = _data // store the svg file globally
+    // create the legend - dynamically injecting the cow information
+    html="<table>"
+    html+="<tr><td width=30>"+svg+" </td><td>Non-clinical</td></tr>"
+    for(var i in event_settings){
+        var obj = event_settings[i]
+        if(obj["type"]!='plot'){
+            html+="<tr><td class='marker_"+obj.label+" shadow'>"+svg+" </td><td>"+obj.label+"</td></tr>"
+        }
+    }
+
+    html+="</table>"
+    $("#legend").html(html)
+}
+function populate_cow_list(){
+    var html=""
+    for(var i in event_settings){
+        var obj = event_settings[i]
+        if(obj["type"]!='plot'){
+            html+=" <span class='font-weight-bold'>"+obj.label+" Cows:</span> <span id='total_"+obj.label+"'></span> <br/>"
+        }
+    }
+
+     $("#cow_count_list").html(html)
 }
 
 
@@ -248,7 +278,6 @@ function after_filter(){
 
 create_plot= function(data){
 
-
     $("#plot").empty()
 
     if(data.length==0){
@@ -281,7 +310,9 @@ create_plot= function(data){
         .text("Originating Pen")
 
 
-    var extent = d3.extent(data, function(d) { return d.value; });
+    var extent = d3.extent(data, function(d) {
+        return d.value;
+    });
 
       // Add X axis
       const x = d3.scaleLinear()

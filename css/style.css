@@ -957,18 +957,6 @@ vertical-align: top;
     color : black;
 }
 
-.marker_sick path {
-    color : red;
-}
-.marker_well path {
-    color : yellow;
-}
-.marker_dead path {
-    color : #deebf7;
-}
-.marker_sold path {
-    color : #9ecae1;
-}
 .shadow {
   -webkit-filter: drop-shadow( 1px 1px 1px rgba(0, 0, 0, .7));
   filter: drop-shadow( 1px 1px 1px rgba(0, 0, 0, .7));
@@ -1009,3 +997,4 @@ max-height: unset !important;
 width: 115px !important;
 
 }
+

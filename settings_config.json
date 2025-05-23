@@ -1,0 +1,39 @@
+{
+    "event_settings": [
+        {
+            "label": "Clinical",
+            "color": "#FF0000",
+            "start": "FLU",
+            "end": "WELL",
+            "type": "cluster_color"
+        },
+    {
+        "label": "Recovered",
+        "color": "#FFFF00",
+        "start": "WELL",
+        "end": "FLU",
+        "type": "cluster_outline"
+    },
+    {
+        "label": "Sold",
+        "color": "#9ecae1",
+        "start": "SOLD",
+        "end": "None",
+        "type": "None"
+    },
+    {
+        "label": "Died",
+        "color": "#deebf7",
+        "start": "DIED",
+        "end": "None",
+        "type": "None"
+    },
+    {
+        "label": "plot",
+        "color": "#000000",
+        "start": "FLU",
+        "end": "None",
+        "type": "plot"
+    }
+    ]
+}

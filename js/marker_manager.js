@@ -33,39 +33,59 @@ class Marker_Manager {
             spiderfyDistanceMultiplier:.4,
             maxClusterRadius:1,
             iconCreateFunction: function (cluster) {
+
+             var color =[255,255,255]
+             var count=0
              var childCount = cluster.getChildCount();
 
 
              var markers=cluster.getAllChildMarkers()
-             var sick_count=0
-             for(var i =0;i<markers.length;i++){
-                 if (markers[i].options.icon.options.sick==true){
-                   sick_count+=1
+             var cluster_color_count=0
+             var cluster_outline_count=0
+             // find the cluster category
+             var has_cluster_color =false
+             var has_cluster_outline =false
+
+             for(var i in event_settings){
+                var e = event_settings[i]
+                if(e["type"]=='cluster_color'){
+                    has_cluster_color =e.label
+                }
+                if(e["type"]=='cluster_outline'){
+                    has_cluster_outline =e.label
+                }
+            }
+            if(has_cluster_color){
+                 for(var i =0;i<markers.length;i++){
+                     if (markers[i].options.icon.options.status==has_cluster_color){
+                       cluster_color_count+=1
+                     }
+
                  }
+                 color = marker_manager.get_cluster_color(cluster_color_count)
 
+                 count=cluster_color_count
+                 var count_display=$('#count_display_dropdown option:selected').val()
+                 if (count_display==2){
+                    count =Math.round((cluster_color_count/childCount)*100)+"%"
+                 }else if (count_display==3){
+                    count =childCount
+                 }
              }
-             var color = marker_manager.get_cluster_color(sick_count)
-
-             var count=sick_count
-             var count_display=$('#count_display_dropdown option:selected').val()
-             if (count_display==2){
-                count =Math.round((sick_count/childCount)*100)+"%"
-             }else if (count_display==3){
-                count =childCount
-             }
+             //------------------
              // wellness check
-             var well_count=0
-             for(var i =0;i<markers.length;i++){
-                 if (markers[i].options.icon.options.well==true){
-                   well_count+=1
+              if(has_cluster_outline){
+
+                 for(var i =0;i<markers.length;i++){
+                     if (markers[i].options.icon.options.status==has_cluster_outline){
+                       cluster_outline_count+=1
+                     }
                  }
-
-             }
-
+            }
 
              var  class_name='marker-cluster'
              // if there are well cows - add a yellow outline
-             if(well_count>0){
+             if(cluster_outline_count>0){
                 class_name='marker-cluster-warn'
 
              }
@@ -99,28 +119,28 @@ class Marker_Manager {
             var popup_content = "ID: "+obj["ID"]+"<br/>"
             popup_content += "In Pen: "+obj["IN PEN"]+"<br/>"
 
-            // allow marking a cow as sick
-           // popup_content+='<button type="button" class="btn btn-info" onclick="marker_manager.mark_sick('+obj["ID"]+')">Mark as sick</button>'+" on "
+
             popup_content+=$("#filter_current_date").val()
+            // dyanmically populate popup content based on config
             popup_content+="<br/>"+"<a href='javascript:void(0);' onclick='record_manager.show_data("+obj["ID"]+",\"ID\")'>Show Movement History</a>"
 
-
-            var sick_records = marker_manager.get_event_records(obj["ID"],event_data["sick"])
-            for(var i=0;i<sick_records.length;i++){
-               popup_content+="<br/>"+"Clinical From: "+moment.unix(sick_records[i]["start_date"]).format('YYYY-MM-DD')+" to "+ moment.unix (sick_records[i]["end_date"]).format('YYYY-MM-DD')
+            // We're looking for any matching records from the event_data
+            for(var i in event_settings){
+                var e = event_settings[i]
+                if(e["type"]!='plot'){
+                    var records = marker_manager.get_event_records(obj["ID"],event_data[e.label])
+                    for(var i=0;i<records.length;i++){
+                       popup_content+="<br/>"+e.label+" From: "+moment.unix(records[i]["start_date"]).format('YYYY-MM-DD')+" to "+ moment.unix (records[i]["end_date"]).format('YYYY-MM-DD')
+                    }
+                }
             }
 
-             var well_records = marker_manager.get_event_records(obj["ID"],event_data["well"])
-            for(var i=0;i<well_records.length;i++){
-               popup_content+="<br/>"+"Recovered From: "+moment.unix(well_records[i]["start_date"]).format('YYYY-MM-DD')+" to "+ moment.unix (well_records[i]["end_date"]).format('YYYY-MM-DD')
-            }
 
             var marker=L.marker(location, {icon: this.get_marker_icon(obj["ID"],marker_manager.check_status(obj["ID"], moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()))})
             this.items.push(marker)
             this.marker_cluster.addLayer( marker)//
             marker.on('click', function(e) {
-                console.log("click")
-                 // create and display popup on map
+              // create and display popup on map
               let popup = L.popup({ autoPanPadding: [200, 200],offset: [0, -10]})
                 .setLatLng(e.target._latlng)
                 .setContent(popup_content)
@@ -159,10 +179,8 @@ class Marker_Manager {
                      iconSize: [16, 16],
                      iconAnchor: [8, 16],
                     _id:id,
-                     sick:_class=="marker_sick",
-                     well:_class=="marker_well",
-                     sold:_class=="marker_sold",
-                     dead:_class=="marker_dead"
+                    status:_class.substring(_class.indexOf("marker_")+7)
+
         });
 
     }
@@ -190,22 +208,6 @@ class Marker_Manager {
          });
 
     }
-//    mark_sick(_id){
-//        // find the cow on the map - turn it red
-//        // create a record of the cow being sick at a specific date
-//        // moving forward from the date the cow remains sick
-//        // moving backwards, should the cow remain sick?
-//        var $this=this;
-//         this.marker_cluster.eachLayer(function (marker){
-//             if(marker.options.icon.options._id==_id){
-//                marker.options.icon.options.sick=true;
-//                marker.setIcon($this.get_marker_icon(_id,"marker_sick"));
-//                sick_data.push({"id":_id, "date": moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()})
-//
-//
-//             }
-//    });
-//    }
     check_status(_id,_date){
         /**
          * Determines if an item is sick. Checks against a list of sick ranges. Amended to also check if a cow is well
@@ -215,38 +217,26 @@ class Marker_Manager {
          * @returns {string} the name of a class to style the item accordingly
          */
         var marker_class = "marker_default"
-
-        for(var i=0;i<event_data["sick"].length;i++){
-            if(event_data["sick"][i]["id"]==_id && _date>=event_data["sick"][i]["start_date"] && _date<=event_data["sick"][i]["end_date"]){
-                marker_class= "marker_sick";
+        for(var i in event_settings){
+                var e = event_settings[i]
+                if(e["type"]!='plot'){
+                    var records = marker_manager.get_event_records(_id,event_data[e.label])
+                    for(var i=0;i<records.length;i++){
+                         if( _date>=records[i]["start_date"] && _date<=records[i]["end_date"]){
+                         marker_class= "marker_"+e.label;
+                        }
+                    }
+                }
             }
 
-        }
-        for(var i=0;i<event_data["well"].length;i++){
-            if(event_data["well"][i]["id"]==_id && _date>=event_data["well"][i]["start_date"] && _date<=event_data["well"][i]["end_date"]){
-                marker_class= "marker_well";
-            }
 
-        }
-        for(var i=0;i<event_data["sold"].length;i++){
-            if(event_data["sold"][i]["id"]==_id && _date>=event_data["sold"][i]["start_date"] && _date<=event_data["sold"][i]["end_date"]){
-                marker_class= "marker_sold";
-            }
-
-        }
-        for(var i=0;i<event_data["dead"].length;i++){
-            if(event_data["dead"][i]["id"]==_id && _date>=event_data["dead"][i]["start_date"] && _date<=event_data["dead"][i]["end_date"]){
-                marker_class= "marker_dead";
-            }
-
-        }
         return marker_class;
     }
    get_event_records(_id,_array){
          /**
-         * Generates a list of sick records for an item
+         * Generates a list of event records based on the item id
          * @param {number} _id the unique id of the item.
-         * @returns {array} an array of sick records for the item
+         * @returns {array} an array of records for the item
          */
         var records=[]
         for(var i=0;i<_array.length;i++){

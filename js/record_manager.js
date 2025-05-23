@@ -295,6 +295,7 @@ class Record_Manager {
     }
 
     populate_days(_array,_event_start,_event_end,_end_date){
+
         // called with event_data["sick"],"FLU","WELL",end_date)
         // create a sub set of the data
         //any record that has an EVENT labeled {_event_start} should have a record
@@ -304,7 +305,7 @@ class Record_Manager {
             if(t["EVENT"].trim()==_event_start){
                 var end_date;
                 // find the end date which should be ahead
-                if(_event_end){
+                if(_event_end && _event_end!="None"){
                     for(var j=i;j<this.json_data.length;j++){
                          var u = this.json_data[j]
                          // make sure the next event is later that the first
@@ -326,25 +327,34 @@ class Record_Manager {
 
    search_by_date(_date){
        // let's search for records that fall on a date
-      var ids=[] // store the unique ids
-      var duplicate_ids=[] // store the unique ids
-      var ids_sick=[] // track sick
-      var ids_well=[] // track well
-       var ids_sold=[] // track well
-        var ids_dead=[] // track well
-        this.pen_warning={}
-       marker_manager.reset()
+       // create a temporary object to track the important information
+       this.id_track={
+                    'ids':[],// store the unique ids
+                    'duplicate_ids':[],// store the unique ids
+                    'pen_warning':{}// When a pen can't be found in the geojson
+                     }
+
+        //inject the tracked events from the config
+         for(var i in event_settings){
+            var obj = event_settings[i]
+            if(obj["type"]!='plot'){
+                this.id_track[obj.label]=[]
+            }
+        }
+
+
+       marker_manager.reset();// remove all markers
        for(var i=0;i<this.json_data.length;i++){
              var t = this.json_data[i]
 
             if(_date.isBetween(t["START DATE"], t["END DATE"]) || _date.isSame(t["START DATE"]) ) {//|| _date.isSame( t["END DATE"])
 
-                if($.inArray(t["ID"], ids)==-1){
-                    ids.push(t["ID"])
+                if($.inArray(t["ID"], this.id_track['ids'])==-1){
+                    this.id_track['ids'].push(t["ID"])
 
                 }else{
                    // console.log(t["ID"], "is on the map more than once")
-                    duplicate_ids.push(t["ID"])
+                    this.id_track['duplicate_ids'].push(t["ID"])
                 }
 
                 // show the cows on the map
@@ -354,78 +364,93 @@ class Record_Manager {
                 if(location){
 
                     var marker = marker_manager.create_marker(t,location);
-
-
-                    if(marker.options.icon.options.sick){
-                        ids_sick.push(marker)
+                    var status = marker.options.icon.options.status
+                    if(status!='default'){
+                        this.id_track[status].push(marker)
                     }
-                     if(marker.options.icon.options.well){
-                        ids_well.push(marker)
-                    }
-                     if(marker.options.icon.options.sold){
-                        ids_sold.push(marker)
-                    }
-                     if(marker.options.icon.options.dead){
-                        ids_dead.push(marker)
-                    }
+                    //console.log(marker.options.icon.options)
+//                    if(marker.options.icon.options.sick){
+//                        ids_sick.push(marker)
+//                    }
+//                     if(marker.options.icon.options.well){
+//                        ids_well.push(marker)
+//                    }
+//                     if(marker.options.icon.options.sold){
+//                        ids_sold.push(marker)
+//                    }
+//                     if(marker.options.icon.options.dead){
+//                        ids_dead.push(marker)
+//                    }
                 }else{
                     //console.log(t["IN PEN"], "not found")
                     this.create_pen_warning(t["IN PEN"])
                 }
            }
         }
-        $("#total_items").html(ids.length)
-        $("#duplicate_items").html(duplicate_ids.length)
-
-         $("#total_sick").html(ids_sick.length)
-          $("#total_well").html(ids_well.length)
-          $("#total_sold").html(ids_sold.length)
-          $("#total_dead").html(ids_dead.length)
+        $("#total_items").html( this.id_track["ids"].length)
+        $("#duplicate_items").html( this.id_track["duplicate_ids"].length)
+        // Show totals
+         for(var i in event_settings){
+            var obj = event_settings[i]
+            if(obj["type"]!='plot'){
+               $("#total_"+obj.label).html(this.id_track[obj.label].length)
+            }
+        }
 
         //
         this.show_orig_sick_pen(_date.unix())
         this.show_pen_warning()
     }
     create_pen_warning(pen,t){
-        // track the unique pens and given a warning
-        if(!(String(pen) in this.pen_warning)){
-            this.pen_warning[String(pen)]=[]
+        // track the unique pens and give a warning
+        if(!(String(pen) in this.id_track["pen_warning"])){
+             this.id_track["pen_warning"][String(pen)]=[]
         }
-        this.pen_warning[String(pen)].push(t)
+        this.id_track["pen_warning"][String(pen)].push(t)
 
     }
      show_pen_warning(pen,t){
         // track the unique pens and given a warning
         var html=""
-       for(var i in this.pen_warning){
-        html+="Pen: "+ i +" has "+this.pen_warning[i].length +" not shown </br>"
+       for(var i in  this.id_track["pen_warning"]){
+        html+="Pen: "+ i +" has "+ this.id_track["pen_warning"][i].length +" not shown </br>"
 
        }
         $("#warning").html(html)
     }
     show_orig_sick_pen(_date){
-        var match_days=[]
-        var array=event_data["orig_sick_pen"]
-        for(var i=0;i<array.length;i++){
-            if(_date>=array[i]["start_date"] && _date<=array[i]["end_date"]){
-               match_days.push(array[i]);
+        // get the plot tracking information
+        var has_plot =false
+         for(var i in event_settings){
+            var obj = event_settings[i]
+            if(obj["type"]=='plot'){
+              has_plot = obj.label
             }
         }
-        // group by pen
-        var ids={}
-        for(var i=0;i<match_days.length;i++){
-            if(!ids?.[match_days[i]["from_pen"]]){
-                ids[match_days[i]["from_pen"]]=[]
+        if (has_plot){
+            var match_days=[]
+            var array=event_data[has_plot]
+            for(var i=0;i<array.length;i++){
+                if(_date>=array[i]["start_date"] && _date<=array[i]["end_date"]){
+                   match_days.push(array[i]);
+                }
             }
-            ids[match_days[i]["from_pen"]].push(match_days[i])
+            // group by pen
+            var ids={}
+            for(var i=0;i<match_days.length;i++){
+                if(!ids?.[match_days[i]["from_pen"]]){
+                    ids[match_days[i]["from_pen"]]=[]
+                }
+                ids[match_days[i]["from_pen"]].push(match_days[i])
+            }
+    //        console.log(ids)
+            // convert to CSV
+            var data =[]
+            for(var i in ids){
+                data.push({"name":i,"value":ids[i].length})
+            }
+            create_plot(data.sort((a, b) => b.value - a.value)) // Ascending order)
         }
-//        console.log(ids)
-        // convert to CSV
-        var data =[]
-        for(var i in ids){
-            data.push({"name":i,"value":ids[i].length})
-        }
-        create_plot(data.sort((a, b) => b.value - a.value)) // Ascending order)
     }
     show_data(_id,_attr,_at_date){
         var data=[];
