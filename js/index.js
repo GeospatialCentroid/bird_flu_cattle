@@ -185,6 +185,11 @@ function setup_interface(data){
             var obj=event_settings[i]
             // create a style for each of the events to be tracked
             $("<style type='text/css'> .marker_"+obj.label+" path { color:"+obj.color+";} </style>").appendTo("head");
+            // we also need a class without the path for the cluster outline
+            if(obj["type"]=='cluster_outline'){
+                var rgb = hexToRgb(obj.color);
+               $("<style type='text/css'> .marker-cluster-warn {  background-color:rgba("+rgb[0]+","+rgb[1]+", "+rgb[2]+", 0.6);} </style>").appendTo("head");
+            }
             event_data[obj.label]=[]
             // create buckets with for all the config specified events to be tracked
             record_manager.populate_days(event_data[obj.label],obj.start,obj.end,end_date)

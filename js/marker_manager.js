@@ -8,36 +8,19 @@ class Marker_Manager {
 
    }
    reset(){
-   //this.items = new L.FeatureGroup();
-      //https://github.com/Leaflet/Leaflet.markercluster?tab=readme-ov-file#customising-the-clustered-markers
-//       if (this.marker_cluster) {
-//
-//            for(var i=0;i<this.items.length;i++){
-//             this.marker_cluster.removeLayer(this.items[i]);
-//              delete this.items[i];
-//            }
-//
-//
-//           this.map.removeLayer(this.marker_cluster);
-//           delete this.marker_cluster;
-//
-//        //return
-//        }
-         this.marker_cluster.clearLayers()
+      this.marker_cluster.clearLayers()
       this.items=[]
-
    }
    init(){
-        this.items=[]; //for storing markers
+      this.items=[]; //for storing markers
       this.marker_cluster = L.markerClusterGroup({
             spiderfyDistanceMultiplier:.4,
             maxClusterRadius:1,
             iconCreateFunction: function (cluster) {
-
-             var color =[255,255,255]
+            // custom cluster function bases on count of sick cows
+             var color =[255,255,255]// base color for clusters
              var count=0
              var childCount = cluster.getChildCount();
-
 
              var markers=cluster.getAllChildMarkers()
              var cluster_color_count=0
@@ -50,6 +33,7 @@ class Marker_Manager {
                 var e = event_settings[i]
                 if(e["type"]=='cluster_color'){
                     has_cluster_color =e.label
+                    var cluster_color = e.color.substring(1)// get the hex color but strip the '#'
                 }
                 if(e["type"]=='cluster_outline'){
                     has_cluster_outline =e.label
@@ -62,7 +46,8 @@ class Marker_Manager {
                      }
 
                  }
-                 color = marker_manager.get_cluster_color(cluster_color_count)
+                 // get the color between 0 and n to show what the cluster contains
+                 color = marker_manager.get_cluster_color(cluster_color_count,color,hexToRgb(cluster_color))
 
                  count=cluster_color_count
                  var count_display=$('#count_display_dropdown option:selected').val()
@@ -85,7 +70,7 @@ class Marker_Manager {
 
              var  class_name='marker-cluster'
              // if there are well cows - add a yellow outline
-             if(cluster_outline_count>0){
+             if(cluster_outline_count>0 && has_cluster_outline){
                 class_name='marker-cluster-warn'
 
              }
@@ -246,12 +231,12 @@ class Marker_Manager {
         }
         return records;
     }
-     get_cluster_color(val){
+     get_cluster_color(val,color_1,color_2){
         //find out where we are in the gradient
 
-       //todo allow for gadient across more colors
-       var color1 = hexToRgb("FFFFFF")
-       var color2 = hexToRgb("FF0000")
+       //Allow for gradient across 2 colors, note that the must be in rgb hexToRgb(color_1)
+       var color1 = color_1
+       var color2 = color_2
        //
        var lower= 0
        var higher = 10
