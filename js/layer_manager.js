@@ -31,8 +31,13 @@ class Layer_Manager {
             },
             onEachFeature: function (feature, layer) {
 
-                layer.bindTooltip("<span style='font-weight:bolder;font-size:14px;'>"+String(feature.properties.id)+'</span>', {permanent: true, opacity: 0.9,direction: "top",className: "polygon_label"})
-
+                //layer.bindTooltip("<span style='font-weight:bolder;font-size:14px;'>"+String(feature.properties.id)+'</span>', {permanent: true, opacity: 0.9,direction: "top",className: "polygon_label"})
+                 var b = layer.getBounds()
+                var tooltip = L.tooltip([b._northEast.lat,b._southWest.lng],{
+                content:String(feature.properties.id)
+                ,permanent: true, opacity: 0.9,className: "polygon_label",direction: "right",offset:L.point(-5, 9)
+                })
+                .addTo(map_manager.map);
 
                 var popup_content = "PEN ID: "+feature.properties.id+"<br/>"
 

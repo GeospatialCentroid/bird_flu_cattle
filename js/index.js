@@ -160,7 +160,7 @@ function after_filter(){
     record_manager.join_data()
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
-    var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1])
+    var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
     //todo  dial the INTERFACE end date back one day to account for view showing data up to but excluding the end date
    //var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
    record_manager.complete_end_data(end_date)
@@ -179,7 +179,7 @@ function after_filter(){
 
 function setup_interface(data){
         event_settings = data
-      var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
+      var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1])
 
       for (var i in event_settings){
             var obj=event_settings[i]
@@ -293,7 +293,7 @@ create_plot= function(data){
 
     // set the dimensions and margins of the graph
     var row_height=25
-    const margin = {top: 18, right: 0, bottom:20, left: 40},
+    const margin = {top: 18, right: 0, bottom:25, left: 40},
         width = 120 - margin.left - margin.right,
         height = (row_height*(data.length+1)) - margin.top - margin.bottom;
 

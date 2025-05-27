@@ -183,6 +183,17 @@ class Record_Manager {
 
               $("#map_label").html("<b>Date:</b> "+$("#filter_current_date").val())
               save_params()
+
+              // control the forward and back buttons
+              $("#date_advance_backward").prop("disabled", false);
+              $("#date_advance_forward").prop("disabled", false);
+               if($("#filter_current_date").val()===$("#filter_start_date").val()){
+                  $("#date_advance_backward").prop("disabled", true);
+              }
+              if($("#filter_current_date").val()===$("#filter_end_date").val()){
+                  $("#date_advance_forward").prop("disabled", true);
+              }
+
         });
 
         $("#filter_start_date").change( function() {
@@ -511,14 +522,17 @@ class Record_Manager {
         $this.slider_step(slider,icon)
     }
    slider_step(_slider,_icon) {
+
         var $this=this
         var curr_position= moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()
         var next_position=curr_position+86400
 
          $("#filter_current_date").datepicker().val(moment.unix(next_position).format('YYYY-MM-DD'))
          $("#filter_current_date").trigger('change');
+
          //if we are at the end. stop
           if($("#filter_current_date").val()===$("#filter_end_date").val()){
+
                   $this.slider_pause(_icon)
               return
           }
