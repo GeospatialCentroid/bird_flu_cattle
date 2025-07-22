@@ -1,4 +1,5 @@
 
+
 function  init_event_prompt(data){
     // populate the event prompt based on the loaded config
     setup_fields()
@@ -10,14 +11,20 @@ function  init_event_prompt(data){
         duplicate_row($(".duplicate").last())
         }
        $("#data_form .row:last-child").each(function( index ) {
-                 $(this).find(":input").each(function( index ) {
-                if(typeof($(this).attr("data"))!="undefined"){
-                     $(this).val(event_settings[e][$(this).attr("data")])
-                }
+               $(this).find(":input").each(function( index ) {
+                    if(typeof($(this).attr("data"))!="undefined"){
+                        // set the value of the input
+                         $(this).val(event_settings[e][$(this).attr("data")])
+                    }
               });
         });
       }
-      $(".picker").drawrpalette()
+
+    $(".picker").drawrpalette().on("choose.drawrpalette",function(event,hexcolor){
+            console.log("choose: " + hexcolor);
+        })
+
+
      show_model()
 }
 function show_model(){
@@ -29,7 +36,9 @@ duplicate_row=function(elm){
       $(elm).parent().parent().parent().append($(elm).parent().parent().clone())
 }
 fix_picker =function(){
-    $(".picker:last").drawrpalette();
+ $("span.cow_color:last").empty()
+    $("span.cow_color:last").html('<input type="text" class="cow_color picker" value="" data="color"/>')
+  $(".picker:last").drawrpalette()
 }
 delete_row=function(elm){
     $(elm).parent().parent().remove()

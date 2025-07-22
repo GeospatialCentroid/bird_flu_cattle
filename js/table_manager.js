@@ -310,8 +310,8 @@ class Table_Manager {
 
   }
   //
-  generate_table(_features){
-    this.csv=""
+  generate_table(_features, show){
+   this.csv=""
     this.id="id";//reset
     this.elm_wrap.show()
 
@@ -358,10 +358,12 @@ class Table_Manager {
 
     html +="</tbody></table>";
 
-    $("#"+this.elm).html(html)
+   if(show){
+        $("#"+this.elm).html(html)
+    }
 
     setTimeout(function(){ $(window).trigger("resize"); }, 10);
-
+    return this.csv
   }
   get_rows_html(_rows,_cols){
     if(!_cols && _rows.length>0 && _rows[0]?.properties){
@@ -400,7 +402,7 @@ class Table_Manager {
 
                     text=_rows[i][_cols[p]]
                   }
-                  csv_array.push(String(text))
+
                   if(typeof text === 'string'){
                     text = text.hyper_text()
                     if(text.indexOf("<a href")==-1){
@@ -414,6 +416,7 @@ class Table_Manager {
                   if(text==null){
                     text=""
                   }
+                   csv_array.push(String(text))
                   html+="<td>"+text+"</td>"
               }
         }
@@ -529,11 +532,17 @@ class Table_Manager {
     //analytics_manager.track_event("table","close_table","layer_id",this.selected_layer_id)
   }
   download(filename, text) {
-       this.generate_csv()
+       this.generate_csv("output.csv",this.generate_table(this.json_data, false))
     }
-    generate_csv(){
+    download_all(filename, text) {
+       this.generate_csv("all_output.csv",this.generate_table(record_manager.json_data, false))
+    }
+    generate_csv(name){
+        if(!name){
+            name="output.csv"
 
-        this.download_file( this.csv, "output.csv", "text/plain");
+        }
+        this.download_file( this.csv,name , "text/plain");
     }
     download_file(data, filename, mimeType) {
       const blob = new Blob([data], { type: mimeType });

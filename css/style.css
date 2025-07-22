@@ -625,7 +625,12 @@ position: absolute;
     top: 0;
     right: 0;
 }
-.data_table_download{
+.data_table_download0{
+    position: absolute;
+    top: 0;
+    right: 60px;
+}
+.data_table_download1{
     position: absolute;
     top: 0;
     right: 30px;
@@ -997,4 +1002,8 @@ max-height: unset !important;
 width: 115px !important;
 
 }
+input.label{
+    margin-top:5px;
+    font-weight:bold;
 
+}

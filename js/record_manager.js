@@ -128,7 +128,8 @@ class Record_Manager {
             browser_control=true
 //            $this.set_filters()
 //            $this.filter()
-            console.log(params,$this.params)
+
+            //console.log(params,$this.params)
 
 
             browser_control=false
@@ -242,10 +243,15 @@ class Record_Manager {
    join_data(){
         // join the data to itself to add an end date
         //look for matches by finding the cow ID the TO PEN (t) and match on Cow ID and CURRENT PEN
+
+        // Loop over all records
         for(var i=0;i<this.json_data.length;i++){
-            var t = this.json_data[i]
-            for(var j=0;j<this.json_data.length;j++){
-                var c = this.json_data[j]
+
+            var t = this.json_data[i] // create a reference to the to (t) record
+            // Loop over all the records to join (looking forward)
+            for(var j=i+1;j<this.json_data.length;j++){
+                var c = this.json_data[j] // create a reference to the current pen (c) record
+                // where the ids match and the to (t) pen matches the current (c) pan
                 if(t["ID"] == c["ID"] && t["TO PEN"] == c["CURRENT PEN"]){
                      // for clarity add an "IN PEN"
                      t["IN PEN"]=t["TO PEN"]
@@ -259,6 +265,7 @@ class Record_Manager {
        }
     }
    complete_end_data(_end_date){
+   console.log("_end_date",_end_date.format('YYYY-MM-DD' ))
         // Since we only have movement data - we don't know how long the cows have been in their last Pen
         // For any records that don't have an END Date - use the End Date
         for(var i=0;i<this.json_data.length;i++){
@@ -316,7 +323,7 @@ class Record_Manager {
             if(t["EVENT"].trim()==_event_start){
                 var end_date;
                 // find the end date which should be ahead
-                if(_event_end && _event_end!="None"){
+                if(_event_end && _event_end!=""){
                     for(var j=i;j<this.json_data.length;j++){
                          var u = this.json_data[j]
                          // make sure the next event is later that the first
@@ -491,7 +498,9 @@ class Record_Manager {
          data.sort(function(a, b){
             return a['START DATE'] - b['START DATE'];
         });
-         table_manager.generate_table(data)
+        // store the original subsetted json with the table for ease of access
+        table_manager.json_data=data
+         table_manager.generate_table(data,true)
          table_manager.show_totals()
     }
 

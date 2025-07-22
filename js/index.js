@@ -156,25 +156,25 @@ function setup_records(_data){
 
 }
 function after_filter(){
-
     record_manager.join_data()
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
     var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
     //todo  dial the INTERFACE end date back one day to account for view showing data up to but excluding the end date
    //var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
-   record_manager.complete_end_data(end_date)
-   console.log(start_date.format('YYYY-MM-DD' ))
-    record_manager.complete_start_data(start_date)
+
+    record_manager.complete_end_data(end_date)
+
+     record_manager.complete_start_data(start_date)
 
     record_manager.clean_data()
-    console.log(end_date.format('YYYY-MM-DD' ))
 
-   //record_manager.generate_csv()
     $("#model_data_form").on("hidden.bs.modal", function () {
        process_data_forms();
+        $("#filter_current_date").trigger('change');
     });
    load_data('settings_config.json','json',init_event_prompt)
+
 }
 
 function setup_interface(data){
@@ -191,7 +191,7 @@ function setup_interface(data){
                $("<style type='text/css'> .marker-cluster-warn {  background-color:rgba("+rgb[0]+","+rgb[1]+", "+rgb[2]+", 0.6);} </style>").appendTo("head");
             }
             event_data[obj.label]=[]
-            // create buckets with for all the config specified events to be tracked
+            // create buckets with all the config specified events to be tracked
             record_manager.populate_days(event_data[obj.label],obj.start,obj.end,end_date)
 
       }
