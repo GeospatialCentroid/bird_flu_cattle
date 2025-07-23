@@ -177,8 +177,8 @@ function after_filter(){
 
 }
 
-function setup_interface(data){
-        event_settings = data
+function setup_interface(event_settings){
+
       var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1])
 
       for (var i in event_settings){
@@ -190,6 +190,7 @@ function setup_interface(data){
                 var rgb = hexToRgb(obj.color);
                $("<style type='text/css'> .marker-cluster-warn {  background-color:rgba("+rgb[0]+","+rgb[1]+", "+rgb[2]+", 0.6);} </style>").appendTo("head");
             }
+            // reset the event label
             event_data[obj.label]=[]
             // create buckets with all the config specified events to be tracked
             record_manager.populate_days(event_data[obj.label],obj.start,obj.end,end_date)

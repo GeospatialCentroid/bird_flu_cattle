@@ -317,17 +317,19 @@ class Record_Manager {
         // called with event_data["sick"],"FLU","WELL",end_date)
         // create a sub set of the data
         //any record that has an EVENT labeled {_event_start} should have a record
-
+        console.log("populate_days", _end_date)
         for(var i=0;i<this.json_data.length;i++){
           var t = this.json_data[i];
-            if(t["EVENT"].trim()==_event_start){
-                var end_date;
+          var end_date = false
+          if(t["EVENT"].trim()==_event_start){
+
                 // find the end date which should be ahead
                 if(_event_end && _event_end!=""){
-                    for(var j=i;j<this.json_data.length;j++){
+                    for(var j=i+1;j<this.json_data.length;j++){
                          var u = this.json_data[j]
-                         // make sure the next event is later that the first
-                         if(u["EVENT"].trim()==_event_end && moment(t["START DATE"],this.date_format).unix() < moment(u["START DATE"],this.date_format).unix()){
+                         // make sure the next event is later than the first and matched the desired end event name
+                         if(u["ID"]==t["ID"] && u["EVENT"].trim()==_event_end && moment(t["START DATE"],this.date_format).unix() < moment(u["START DATE"],this.date_format).unix()){
+//                           console.log("Closing t",t, "with u",u)
                             end_date=moment(u["START DATE"],this.date_format).unix()
                             break;
                          }
