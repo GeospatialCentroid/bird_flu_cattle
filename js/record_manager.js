@@ -106,7 +106,7 @@ class Record_Manager {
         }
 
         //sort
-        date_list= date_list.sort((a, b) => a.valueOf() - b.valueOf())
+        //date_list= date_list.sort((a, b) => a.valueOf() - b.valueOf())
         $this.add_date_search(date_list[0],date_list[date_list.length-1])
 
         // index sort
