@@ -30,17 +30,34 @@ class Layer_Manager {
                 fillOpacity: 0.3
             },
             onEachFeature: function (feature, layer) {
-
+            // Build title line
+            var title =  feature.properties.id;
+            if (feature.properties.name) {
+              title += " (" + feature.properties.name + ")";
+            }
                 //layer.bindTooltip("<span style='font-weight:bolder;font-size:14px;'>"+String(feature.properties.id)+'</span>', {permanent: true, opacity: 0.9,direction: "top",className: "polygon_label"})
                  var b = layer.getBounds()
                 var tooltip = L.tooltip([b._northEast.lat,b._southWest.lng],{
-                content:String(feature.properties.id)
+                content:String(title)
                 ,permanent: true, opacity: 0.9,className: "polygon_label",direction: "right",offset:L.point(-5, 9)
                 })
                 .addTo(map_manager.map);
 
-                var popup_content = "PEN ID: "+feature.properties.id+"<br/>"
+                var exclude = ["stroke", "stroke-width", "stroke-opacity", "fill", "fill-opacity"];
 
+
+
+            // Start popup content
+            var popup_content = "<strong>"+"PEN ID: " + title + "</strong><br/>";
+            popup_content += "<table>";
+            //popup_content += "<tr><th>Property</th><th>Value</th></tr>";
+
+            for (var p in feature.properties) {
+              if (!exclude.includes(p) && p !== "id" && p !== "name") {
+                popup_content += "<tr><td><b>" + p + ":</b></td><td>" + feature.properties[p] + "</td></tr>";
+              }
+            }
+            popup_content += "</table>";
                 popup_content+="<a href='javascript:void(0);' onclick='record_manager.show_data(\""+feature.properties.id+"\",\"IN PEN\",true)'>Show Pen Data</a>"
                layer.on('click', function(e) {
                   map_manager.show_highlight_geo_json(feature)

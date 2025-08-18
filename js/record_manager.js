@@ -317,7 +317,7 @@ class Record_Manager {
         // called with event_data["sick"],"FLU","WELL",end_date)
         // create a sub set of the data
         //any record that has an EVENT labeled {_event_start} should have a record
-        console.log("populate_days", _end_date)
+        //console.log("populate_days", _end_date)
         for(var i=0;i<this.json_data.length;i++){
           var t = this.json_data[i];
           var end_date = false

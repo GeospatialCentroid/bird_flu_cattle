@@ -177,10 +177,10 @@ function after_filter(){
 
 }
 
-function setup_interface(event_settings){
-
+function setup_interface(_event_settings){
+      event_settings =_event_settings
       var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1])
-
+      event_data ={}
       for (var i in event_settings){
             var obj=event_settings[i]
             // create a style for each of the events to be tracked
@@ -190,7 +190,7 @@ function setup_interface(event_settings){
                 var rgb = hexToRgb(obj.color);
                $("<style type='text/css'> .marker-cluster-warn {  background-color:rgba("+rgb[0]+","+rgb[1]+", "+rgb[2]+", 0.6);} </style>").appendTo("head");
             }
-            // reset the event label
+            // set event label
             event_data[obj.label]=[]
             // create buckets with all the config specified events to be tracked
             record_manager.populate_days(event_data[obj.label],obj.start,obj.end,end_date)
@@ -203,7 +203,7 @@ function setup_interface(event_settings){
     setTimeout(function(){
       if(record_manager.params && record_manager.params[0].date){
             $("#filter_current_date").datepicker().val( record_manager.params[0].date)
-            $("#filter_current_date").trigger('change');
+           // $("#filter_current_date").trigger('change');
          }else{
             record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())
          }
@@ -216,6 +216,7 @@ function populate_legend(_data){
     html="<table>"
     html+="<tr><td width=30>"+svg+" </td><td>Non-clinical</td></tr>"
     for(var i in event_settings){
+
         var obj = event_settings[i]
         if(obj["type"]!='plot'){
             html+="<tr><td class='marker_"+obj.label+" shadow'>"+svg+" </td><td>"+obj.label+"</td></tr>"
