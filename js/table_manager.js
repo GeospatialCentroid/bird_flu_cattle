@@ -508,6 +508,12 @@ class Table_Manager {
 //        }
 //    }
   }
+  show_data(data){
+    console.log(data)
+    this.json_data=data
+    this.generate_table(data,true)
+    this.show_totals()
+  }
   show_totals(){
 
         var showing_start=1

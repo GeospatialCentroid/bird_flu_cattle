@@ -137,10 +137,14 @@
                          <button id="date_advance_backward" class="btn btn-outline-secondary " onclick="record_manager.move_to_date(-1)" type="button"><i class="bi bi-arrow-left-short"></i></button>
                          <button id="date_advance_forward" class="btn btn-outline-secondary " onclick="record_manager.move_to_date(1)" type="button"><i class="bi bi-arrow-right-short"></i></button>
                 </div>
+
+                <label class="form-check-label font-weight-bold" for="date_first_infection">First Date of infection</label>
+                <button id="date_first_infection" class="btn btn-outline-secondary " type="button"></button>
+
             </div>
             <div class="col" >
-                <span class="font-weight-bold">Total Unique Cows:</span> <span id="total_items"></span> <br/>
-                 <span class="font-weight-bold">Duplicate Cows:</span> <span id="duplicate_items"></span> <br/>
+                <span class="font-weight-bold">Total Unique Cows:</span> <span id="total_items" class="hyper"></span> <br/>
+                 <span class="font-weight-bold">Duplicate Cows:</span> <span id="duplicate_items" class="hyper"></span> <br/>
                  <div id="cow_count_list"></div>
                  <span id="warning"></span>
             </div>

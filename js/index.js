@@ -169,6 +169,7 @@ function after_filter(){
 
     record_manager.clean_data()
 
+
     $("#model_data_form").on("hidden.bs.modal", function () {
        process_data_forms();
         $("#filter_current_date").trigger('change');
@@ -198,7 +199,7 @@ function setup_interface(_event_settings){
       }
        load_data("images/cow.svg","",populate_legend)
        populate_cow_list()
-       console.log(event_data)
+       record_manager.get_first_infection_date()
 
     setTimeout(function(){
       if(record_manager.params && record_manager.params[0].date){
@@ -231,7 +232,7 @@ function populate_cow_list(){
     for(var i in event_settings){
         var obj = event_settings[i]
         if(obj["type"]!='plot'){
-            html+=" <span class='font-weight-bold'>"+obj.label+" Cows:</span> <span id='total_"+obj.label+"'></span> <br/>"
+            html+=" <span class='font-weight-bold'>"+obj.label+" Cows:</span> <span class='hyper' id='total_"+obj.label+"'></span> <br/>"
         }
     }
 
@@ -283,76 +284,3 @@ function populate_cow_list(){
 
 }
 
-create_plot= function(data){
-
-    $("#plot").empty()
-
-    if(data.length==0){
-        $("#plot").hide()
-        return
-    }
-     $("#plot").show()
-
-    // set the dimensions and margins of the graph
-    var row_height=25
-    const margin = {top: 18, right: 0, bottom:25, left: 40},
-        width = 120 - margin.left - margin.right,
-        height = (row_height*(data.length+1)) - margin.top - margin.bottom;
-
-    // append the svg object to the body of the page
-    const svg = d3.select("#plot")
-      .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-
-    svg.append("text")
-        .attr("x", (0))
-        .attr("y", 0 - (margin.top / 2))
-        .style("font-size", "11px")
-         .style("font-weight", "bolder")
-         .style('fill', 'black')
-        .text("Originating Pen")
-
-
-    var extent = d3.extent(data, function(d) {
-        return d.value;
-    });
-
-      // Add X axis
-      const x = d3.scaleLinear()
-      .domain([0, extent[1]])
-      .range([ 0, width])
-
-      svg.append("g")
-        .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(x).ticks(2,d3.format('0f'))).style('color', 'black')
-        .selectAll("text")
-          .attr("transform", "translate(-10,0)rotate(-45)")
-          .style("text-anchor", "end")
-           .style('color', 'black')
-
-      // Y axis
-      const y = d3.scaleBand()
-        .range([ 0, height ])
-        .domain(data.map(d => d.name))
-        .padding(.1);
-      svg.append("g")
-        .call(d3.axisLeft(y))
-        .style('color', 'black')
-
-      //Bars
-      svg.selectAll("myRect")
-        .data(data)
-        .join("rect")
-        .attr("x", x(0) )
-        .attr("y", d => y(d.name))
-        .attr("width", d => x(d.value))
-        .attr("height", y.bandwidth())
-        .attr("fill", "black")
-
-
-
-}

@@ -344,6 +344,31 @@ class Record_Manager {
 
         }
     }
+    get_first_infection_date(){
+        var infection_val=false
+        var infection_record
+        for(var i in event_settings){
+            var e = event_settings[i]
+            if(e["type"]=='cluster_color'){
+                infection_val= e.start
+               break
+            }
+        }
+
+        if(infection_val){
+            for(var i=0;i<this.json_data.length;i++){
+                if(this.json_data[i]["EVENT"]==infection_val){
+                infection_record = this.json_data[i]
+                 $("#date_first_infection").html(infection_record["START DATE"].format('YYYY-MM-DD'))
+                  $("#date_first_infection").click(function() {
+                    $("#filter_current_date").datepicker().val( infection_record["START DATE"].format('YYYY-MM-DD'))
+                    $("#filter_current_date").trigger('change');
+                  });
+                 break
+                }
+            }
+        }
+    }
 
    search_by_date(_date){
        // let's search for records that fall on a date
@@ -408,12 +433,29 @@ class Record_Manager {
            }
         }
         $("#total_items").html( this.id_track["ids"].length)
+        // add hyper link to data access
+        $("#total_items").off("click");
+        $("#total_items").click(function() {
+            record_manager.format_data_for_show(record_manager.id_track["ids"],["ID"])
+        });
+
         $("#duplicate_items").html( this.id_track["duplicate_ids"].length)
+        $("#duplicate_items").off("click");
+        $("#duplicate_items").click(function() {
+             record_manager.format_data_for_show(record_manager.id_track["duplicate_ids"],["ID"])
+        });
         // Show totals
          for(var i in event_settings){
             var obj = event_settings[i]
             if(obj["type"]!='plot'){
                $("#total_"+obj.label).html(this.id_track[obj.label].length)
+                $("#total_"+obj.label).data('label', obj.label);
+                $("#total_"+obj.label).off("click");
+                console.log(this.id_track[obj.label])
+                $("#total_"+obj.label).click(function() {
+                        var label= $(this).data('label')
+                        record_manager.format_data_for_show(record_manager.id_track[label],["ID"])
+                });
             }
         }
 
@@ -421,6 +463,22 @@ class Record_Manager {
         this.show_orig_sick_pen(_date.unix())
         this.show_pen_warning()
     }
+    format_data_for_show(data,attrs){
+        // take an array and convert it to a list of json objects
+        console.log(data)
+        var temp_array = data.map(item => {
+            // if it's not already an array, wrap it so indexing works
+            const values = Array.isArray(item) ? item : [item];
+
+            // build {attr1: val1, attr2: val2, ...}
+            return attrs.reduce((obj, key, i) => {
+              obj[key] = values[i] !== undefined ? values[i] : null; // or leave undefined
+              return obj;
+            }, {});
+          });
+          table_manager.show_data(temp_array)
+    }
+
     create_pen_warning(pen,t){
         // track the unique pens and give a warning
         if(!(String(pen) in this.id_track["pen_warning"])){
@@ -461,16 +519,27 @@ class Record_Manager {
                 if(!ids?.[match_days[i]["from_pen"]]){
                     ids[match_days[i]["from_pen"]]=[]
                 }
-                ids[match_days[i]["from_pen"]].push(match_days[i])
+                // for ease of future access convert end_date and start_date into formatted datetime objects
+                var matched_day=Object.assign({}, match_days[i]);
+                matched_day["start_date"]=moment.unix(matched_day["start_date"]).format('YYYY-MM-DD')
+                matched_day["end_date"]=moment.unix(matched_day["end_date"]).format('YYYY-MM-DD')
+                ids[match_days[i]["from_pen"]].push(matched_day)
             }
-    //        console.log(ids)
+            //store the originating pen for later
+            this.match_days_ids=ids
             // convert to CSV
             var data =[]
             for(var i in ids){
                 data.push({"name":i,"value":ids[i].length})
             }
-            create_plot(data.sort((a, b) => b.value - a.value)) // Ascending order)
+            create_plot(data.sort((a, b) => b.value - a.value)) // Ascending order
         }
+    }
+    show_orig_sick_pen_data(pen){
+    console.log(this.match_days_ids[pen])
+    // create a temporary json obj converting the end_date and start_date into formatted datetime objects
+
+       table_manager.show_data(this.match_days_ids[pen])
     }
     show_data(_id,_attr,_at_date){
         var data=[];

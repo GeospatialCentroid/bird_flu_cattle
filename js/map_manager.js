@@ -226,5 +226,86 @@ class Map_Manager {
     }
 }
  
+create_plot= function(data){
 
+    $("#plot").empty()
+
+    if(data.length==0){
+        $("#plot").hide()
+        return
+    }
+     $("#plot").show()
+
+    // set the dimensions and margins of the graph
+    var row_height=25
+    const margin = {top: 18, right: 10, bottom:25, left: 40},
+        width = 120 - margin.left - margin.right,
+        height = (row_height*(data.length+1)) - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    const svg = d3.select("#plot")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+
+    svg.append("text")
+        .attr("x", (0))
+        .attr("y", 0 - (margin.top / 2))
+        .style("font-size", "11px")
+         .style("font-weight", "bolder")
+         .style('fill', 'black')
+        .text("Originating Pen")
+
+
+    var extent = d3.extent(data, function(d) {
+        return d.value;
+    });
+
+      // Add X axis
+      const x = d3.scaleLinear()
+      .domain([0, extent[1]])
+      .range([ 0, width])
+
+      svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x).ticks(2,d3.format('0f'))).style('color', 'black')
+        .selectAll("text")
+          .attr("transform", "translate(-10,0)rotate(-45)")
+          .style("text-anchor", "end")
+           .style('color', 'black')
+
+      // Y axis
+      const y = d3.scaleBand()
+        .range([ 0, height ])
+        .domain(data.map(d => d.name))
+        .padding(.1);
+     const yAxisG =  svg.append("g")
+        .call(d3.axisLeft(y))
+        .style('color', 'blue')
+        .style('text-decoration', 'underline')
+
+   // add a click handler to each tick label
+    yAxisG.selectAll(".tick text")
+    .style("cursor", "pointer")
+    .on("click", function(event, d) {
+        // show all the data for the pens with originating infections
+        record_manager.show_orig_sick_pen_data(d)
+    });
+
+      //Bars
+      svg.selectAll("myRect")
+        .data(data)
+        .join("rect")
+        .attr("x", x(0) )
+        .attr("y", d => y(d.name))
+        .attr("width", d => x(d.value))
+        .attr("height", y.bandwidth())
+        .attr("fill", "black")
+
+
+
+}
 

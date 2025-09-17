@@ -24,9 +24,11 @@ Additional columns can be added, though they will appear in the table view only.
 This GeoJSON file can be created using https://geojson.io. A brief outline of how to create this file at the given web address is as follows:
    - Navigate to the farm location by using an address in the search bar
    - Use the polygon tool (the square icon) to create shapes outlining each pen denoted in the .csv file
-   - After creating each pen polygon, **click** within the shape to reveal a pop-up, enter 'id' (without quotes) into the left table cell, enter the pen number in the right table cell, click **Save** from within the popup.
+   - After creating each pen polygon, **click** within the shape to reveal a pop-up, enter 'id' (without quotes) into the left table cell (adding the attribute 'id'), enter the pen number in the right table cell, click **Save** from within the popup.
+      - These 'id' numbers are used to join the pen number to the appropriate pen location
    - After adding all pens (with 'id' numbers), click **Save** on the top left of the interface. This will save a GeoJSON file to your computer. You will be able to reopen this within https://geojson.io to continue to edit 
-     the map, if needed. 
+     the map, if needed.
+   - Note: If you'd like to see additional attributes in the popup, you can add them. And if you assign an attribute named 'name', this will appear on the map next to the 'id'. 
    
 ## Running the App
 Once you have both required files on your computer, make sure they are saved in the same directory. Navigate to https://geospatialcentroid.github.io/bird_flu_cattle. Within your file system, navigate to the folder where the required files are saved and drag them, in turn, to the file input field of the application. 
