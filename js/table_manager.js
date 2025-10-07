@@ -429,10 +429,15 @@ class Table_Manager {
   highlight_feature(elm,_id){
     //take the currently selected layer and the id to make a selection
     var feature = this.get_feature(_id);
-
-    $("#filter_current_date").datepicker().val( feature["START DATE"].format('YYYY-MM-DD'))
+    if(feature.hasOwnProperty('START DATE')){
+        $("#filter_current_date").datepicker().val( feature["START DATE"].format('YYYY-MM-DD'))
+    }
      $("#filter_current_date").trigger('change');
-     marker_manager.select_marker_by_id(feature["ID"])
+    var id = feature["ID"]
+    if(!id){
+        id = feature["id"]; //exception  for lowercase id used in event list
+    }
+     marker_manager.select_marker_by_id(id)
 
 //    map_manager.show_highlight_geo_json(feature.geometry)
 //
@@ -500,26 +505,23 @@ class Table_Manager {
   }
 
   get_feature(_id){
+    console_log(this.results)
     return this.results[_id]
-//    for (var i =0;i<this.results.length;i++){
-//    console.log(this.results,"_id",_id)
-//        if(this.results[i]?.properties[this.id]==_id || this.results[i][this.id]){
-//            return this.results[i]
-//        }
-//    }
+
   }
-  show_data(data){
-    console.log(data)
+  show_data(data,extra){
     this.json_data=data
     this.generate_table(data,true)
-    this.show_totals()
+    this.show_totals(extra)
   }
-  show_totals(){
-
+  show_totals(extra){
+        if(!extra){
+            extra=""
+        }
         var showing_start=1
         var showing_end=this.results.length
 
-        $("#data_table_total .total_showing").text("Showing results"+" "+showing_start+" "+"to"+" "+showing_end)
+        $("#data_table_total .total_showing").text("Showing results"+" "+showing_start+" "+"to"+" "+showing_end+" "+extra)
         // when there are no results
         if (showing_end==0){
             $("#data_table_total .total_showing").text("")

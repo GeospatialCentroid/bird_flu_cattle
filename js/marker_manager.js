@@ -170,7 +170,7 @@ class Marker_Manager {
 
     }
     select_marker_by_id(_id){
-    console.log("select_marker_by_id", _id)
+       console_log("select_marker_by_id", _id)
        var $this=this
         this.marker_cluster.eachLayer(function (marker){
            // console.log(marker.getLatLng(), marker)
@@ -187,7 +187,7 @@ class Marker_Manager {
                     marker.fire('click');
                 }
                  map_manager.map.setView(marker.getLatLng(), 18);
-                 console.log(marker)
+                 console_log(marker)
            }
 
          });

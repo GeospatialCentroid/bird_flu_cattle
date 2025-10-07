@@ -1013,3 +1013,14 @@ input.label{
     text-decoration: underline;
     cursor:pointer;
 }
+
+.form-row-item {
+  display: flex;
+  align-items: center;
+  gap:20px; /* Adjust space between label and select */
+  width: 100%;
+}
+.form-row-item label {
+  flex-shrink: 0; /* Prevents label from shrinking */
+  white-space: nowrap; /* Keeps label on one line */
+}

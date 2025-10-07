@@ -46,7 +46,7 @@ class Record_Manager {
       }, 100);
     //
     $("#data_file").html(this.csv)
-    this.load_csv(this.csv,this.process_csv)
+    this.load_csv(this.csv,this.parse_data)
     //
 //    $("#search").focus();
     $("#search_clear").click(function(){
@@ -86,12 +86,75 @@ class Record_Manager {
             }
          });
     }
+    parse_data(data,$this){
 
-     process_csv(data,$this){
-        // convert the csv file to json and create a subset of the records as needed
+     // convert the csv file to json and create a subset of the records as needed
        // strip any extraneous tabs
-       $this.json_data= $.csv.toObjects(data.replaceAll('\t', ''))
-         // account for dates
+       $this.json_data= $.csv.toObjects(data.replaceAll('\t', ''));
+         console_log(record_manager)
+         // initialize this filtering system
+         $("#model_data_config").show()
+          const keys = Object.keys(record_manager.json_data[0]).sort();
+         // for each required field: populate a dropdown giving the user the option to select which column refers to what
+
+        for (var i=0;i<required_variables.length;i++){
+            var rv = required_variables[i]
+            var optional=""
+            if (rv=="CURRENT PEN"){
+                optional=" (optional)"
+            }
+             // create the label and dropdown
+            var html ='<div class="d-flex align-items-center"><div class="form-row-item"><label for="'+rv+'_dropdown">'+rv+optional+'</label> '
+            html+= '<select id="'+rv.replaceAll(" ","_")+'">'
+            html+='<option value="0">Not Available</option>'
+            for(var k in keys){
+                var selected ='';
+                // default selection
+                if (keys[k].toUpperCase()==rv.toUpperCase())
+                    selected = 'selected'
+                 html+='<option value="'+keys[k]+'" '+selected+'>'+keys[k]+'</option>'
+            }
+
+            html+='</select></div></div>'
+            $("#required_variables").append(html)
+        }
+
+    }
+    data_config_set(){
+        //update the data to conform with the expected columns
+
+         for(var i=0;i<this.json_data.length;i++){
+            for(var j=0;j<required_variables.length;j++){
+
+                var old_key=$("#"+required_variables[j].replaceAll(" ","_")).val();
+                // make sure the key is different - otherwise we might delete it
+                if(old_key!=required_variables[j]){
+                    this.json_data[i][required_variables[j]] = this.json_data[i][old_key];
+                    // Delete the old key
+                    delete this.json_data[i][old_key];
+                }
+            }
+         }
+        //artificially populate the CURRENT PEN value - we want to know where the cow moved from
+        if($("#CURRENT_PEN").val()==0){
+              for(var i=this.json_data.length;i>0;i--){
+                // populate the "CURRENT PEN" value with the previous record matching the cow id
+                 for(var j=i-1;j>this.json_data.length;j--){
+                    if(this.json_data[i]["ID"]==this.json_data[j]["ID"]){
+                        this.json_data[i]["CURRENT PEN"]= this.json_data[j]["TO PEN"]
+                        break
+                    }
+                }
+            }
+          }
+        $("#model_data_config").hide()
+        record_manager.process_data(record_manager.json_data,record_manager);
+
+
+    }
+
+     process_data(data,$this){
+        // account for dates
         var date_list=[]
         if($this?.date){
             for (var i=0;i<$this.json_data.length;i++){
@@ -106,8 +169,9 @@ class Record_Manager {
         }
 
         //sort
-        //date_list= date_list.sort((a, b) => a.valueOf() - b.valueOf())
-        $this.add_date_search(date_list[0],date_list[date_list.length-1])
+       // date_list= date_list.sort((a, b) => a.valueOf() - b.valueOf()); //not sorting results in not knowing the earliest data
+        var first_date= date_list.sort((a, b) => a.valueOf() - b.valueOf());// alternative to sorting the data
+        $this.add_date_search(first_date[0],date_list[date_list.length-1])
 
         // index sort
         if($this.json_data[0]?.["INDEX"]){
@@ -152,6 +216,8 @@ class Record_Manager {
             });
         },300);
         after_filter();
+
+
     }
 
     add_date_search(start,end){
@@ -247,7 +313,7 @@ class Record_Manager {
         // Loop over all records
         for(var i=0;i<this.json_data.length;i++){
 
-            var t = this.json_data[i] // create a reference to the to (t) record
+            var t = this.json_data[i] // create a reference to the (t) record
             // Loop over all the records to join (looking forward)
             for(var j=i+1;j<this.json_data.length;j++){
                 var c = this.json_data[j] // create a reference to the current pen (c) record
@@ -280,6 +346,7 @@ class Record_Manager {
        }
     }
     complete_start_data(_start_date){
+    console.log("_star_date",_start_date.format('YYYY-MM-DD' ))
         // Add a record for the first instance of each cow ID giving it a duration of _start_date to end date
         // be sure to omit records that start on the _start_date
         var ids=[] // store the unique ids
@@ -357,14 +424,19 @@ class Record_Manager {
 
         if(infection_val){
             for(var i=0;i<this.json_data.length;i++){
-                if(this.json_data[i]["EVENT"]==infection_val){
-                infection_record = this.json_data[i]
-                 $("#date_first_infection").html(infection_record["START DATE"].format('YYYY-MM-DD'))
-                  $("#date_first_infection").click(function() {
-                    $("#filter_current_date").datepicker().val( infection_record["START DATE"].format('YYYY-MM-DD'))
-                    $("#filter_current_date").trigger('change');
-                  });
-                 break
+                 try{
+                    if(this.json_data[i]["EVENT"]==infection_val){
+                        infection_record = this.json_data[i]
+
+                        $("#date_first_infection").html(infection_record["START DATE"].format('YYYY-MM-DD'))
+                        $("#date_first_infection").click(function() {
+                            $("#filter_current_date").datepicker().val( infection_record["START DATE"].format('YYYY-MM-DD'))
+                            $("#filter_current_date").trigger('change');
+                        });
+                        break
+                    }
+                }catch(e){
+
                 }
             }
         }
@@ -411,21 +483,8 @@ class Record_Manager {
                     var marker = marker_manager.create_marker(t,location);
                     var status = marker.options.icon.options.status
                     if(status!='default'){
-                        this.id_track[status].push(marker)
+                        this.id_track[status].push(t["ID"])//Was (marker)
                     }
-                    //console.log(marker.options.icon.options)
-//                    if(marker.options.icon.options.sick){
-//                        ids_sick.push(marker)
-//                    }
-//                     if(marker.options.icon.options.well){
-//                        ids_well.push(marker)
-//                    }
-//                     if(marker.options.icon.options.sold){
-//                        ids_sold.push(marker)
-//                    }
-//                     if(marker.options.icon.options.dead){
-//                        ids_dead.push(marker)
-//                    }
                 }else{
                     //console.log(t["IN PEN"], "not found")
                     this.create_pen_warning(t["IN PEN"])
@@ -436,13 +495,13 @@ class Record_Manager {
         // add hyper link to data access
         $("#total_items").off("click");
         $("#total_items").click(function() {
-            record_manager.format_data_for_show(record_manager.id_track["ids"],["ID"])
+            record_manager.format_data_for_show(record_manager.id_track["ids"],["ID"], "of Total")
         });
 
         $("#duplicate_items").html( this.id_track["duplicate_ids"].length)
         $("#duplicate_items").off("click");
         $("#duplicate_items").click(function() {
-             record_manager.format_data_for_show(record_manager.id_track["duplicate_ids"],["ID"])
+             record_manager.format_data_for_show(record_manager.id_track["duplicate_ids"],["ID"], "Duplicates")
         });
         // Show totals
          for(var i in event_settings){
@@ -450,11 +509,11 @@ class Record_Manager {
             if(obj["type"]!='plot'){
                $("#total_"+obj.label).html(this.id_track[obj.label].length)
                 $("#total_"+obj.label).data('label', obj.label);
+                // make the total clickable
                 $("#total_"+obj.label).off("click");
-                console.log(this.id_track[obj.label])
                 $("#total_"+obj.label).click(function() {
                         var label= $(this).data('label')
-                        record_manager.format_data_for_show(record_manager.id_track[label],["ID"])
+                        record_manager.format_data_for_show(record_manager.id_track[label],["ID"], "In: "+label)
                 });
             }
         }
@@ -463,20 +522,19 @@ class Record_Manager {
         this.show_orig_sick_pen(_date.unix())
         this.show_pen_warning()
     }
-    format_data_for_show(data,attrs){
+    format_data_for_show(data,attrs,extra){
         // take an array and convert it to a list of json objects
         console.log(data)
         var temp_array = data.map(item => {
             // if it's not already an array, wrap it so indexing works
             const values = Array.isArray(item) ? item : [item];
-
             // build {attr1: val1, attr2: val2, ...}
             return attrs.reduce((obj, key, i) => {
               obj[key] = values[i] !== undefined ? values[i] : null; // or leave undefined
               return obj;
             }, {});
           });
-          table_manager.show_data(temp_array)
+          table_manager.show_data(temp_array, extra)
     }
 
     create_pen_warning(pen,t){
@@ -488,12 +546,11 @@ class Record_Manager {
 
     }
      show_pen_warning(pen,t){
-        // track the unique pens and given a warning
+        // show the pen warnings
         var html=""
-       for(var i in  this.id_track["pen_warning"]){
-        html+="Pen: "+ i +" has "+ this.id_track["pen_warning"][i].length +" not shown </br>"
-
-       }
+        for(var i in  this.id_track["pen_warning"]){
+            html+="Pen: "+ i +" has "+ this.id_track["pen_warning"][i].length +" not shown </br>"
+        }
         $("#warning").html(html)
     }
     show_orig_sick_pen(_date){
@@ -536,10 +593,10 @@ class Record_Manager {
         }
     }
     show_orig_sick_pen_data(pen){
-    console.log(this.match_days_ids[pen])
-    // create a temporary json obj converting the end_date and start_date into formatted datetime objects
+        console_log(this.match_days_ids[pen])
+        // create a temporary json obj converting the end_date and start_date into formatted datetime objects
 
-       table_manager.show_data(this.match_days_ids[pen])
+       table_manager.show_data(this.match_days_ids[pen], "In Pen: "+pen)
     }
     show_data(_id,_attr,_at_date){
         var data=[];

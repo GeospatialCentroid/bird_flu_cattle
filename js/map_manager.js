@@ -252,7 +252,7 @@ create_plot= function(data){
 
 
     svg.append("text")
-        .attr("x", (0))
+        .attr("x", (-10))
         .attr("y", 0 - (margin.top / 2))
         .style("font-size", "11px")
          .style("font-weight", "bolder")

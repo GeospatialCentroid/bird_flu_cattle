@@ -205,6 +205,26 @@
 
 </div>
 
+<div class="modal" tabindex="-1" role="dialog" id="model_data_config">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Data Config</h5>
+      </div>
+      <div class="modal-body">
+        <p>Please specify which columns to use:</p>
+          <form>
+            <div id="required_variables" class="d-flex flex-column gap-2"></div>
+          </form>
+      </div>
+
+      <div class="modal-footer">
+        <button  id="data_config_save_but" onclick="record_manager.data_config_set();" type="button" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1" aria-labelledby="data_form_label" aria-hidden="true" data-bs-backdrop="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">

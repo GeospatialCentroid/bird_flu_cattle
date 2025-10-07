@@ -35,8 +35,7 @@ class Layer_Manager {
             if (feature.properties.name) {
               title += " (" + feature.properties.name + ")";
             }
-                //layer.bindTooltip("<span style='font-weight:bolder;font-size:14px;'>"+String(feature.properties.id)+'</span>', {permanent: true, opacity: 0.9,direction: "top",className: "polygon_label"})
-                 var b = layer.getBounds()
+                var b = layer.getBounds()
                 var tooltip = L.tooltip([b._northEast.lat,b._southWest.lng],{
                 content:String(title)
                 ,permanent: true, opacity: 0.9,className: "polygon_label",direction: "right",offset:L.point(-5, 9)
@@ -50,7 +49,6 @@ class Layer_Manager {
             // Start popup content
             var popup_content = "<strong>"+"PEN ID: " + title + "</strong><br/>";
             popup_content += "<table>";
-            //popup_content += "<tr><th>Property</th><th>Value</th></tr>";
 
             for (var p in feature.properties) {
               if (!exclude.includes(p) && p !== "id" && p !== "name") {
@@ -62,13 +60,13 @@ class Layer_Manager {
                layer.on('click', function(e) {
                   map_manager.show_highlight_geo_json(feature)
                   let popup = L.popup()
-                .setLatLng(e.latlng)
-                .setContent(popup_content)
-                .openOn(map_manager.map);
-                  // close event popup
-                  popup.on("remove", function () {
-                     map_manager.hide_highlight_feature()
-                  });
+                    .setLatLng(e.latlng)
+                    .setContent(popup_content)
+                    .openOn(map_manager.map);
+                      // close event popup
+                      popup.on("remove", function () {
+                         map_manager.hide_highlight_feature()
+                      });
 
 
 
@@ -76,12 +74,6 @@ class Layer_Manager {
             }
         })
        layer_manager.poly.addTo(map_manager.map);
-
-        // set the map bounds to include all the geojson
-        try{
-            setTimeout(function(){  map_manager.map.fitBounds(layer_manager.poly.getBounds());},2000)
-        }catch(e){
-        }
 
          layer_manager.poly.eachLayer(function(layer) {
             layer_manager.pen_center[String(layer.feature.properties.id)]=layer.getCenter()

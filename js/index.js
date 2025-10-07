@@ -26,16 +26,13 @@ var last_params={}
 var usp={};// the url params object to be populated
 
 var browser_control=false; //flag for auto selecting to prevent repeat cals
+var required_variables = ["ID","TO PEN","CURRENT PEN","EVENT","DATE"]
 
 $( function() {
 
     load_data("app.csv","csv",initialize_interface)
 
-
     $(document).on('change','#data_input',function(){on_file_change(event);})
-
-
-
 
     $("#map_wrapper").resizable({
     handles: 's',
@@ -149,14 +146,16 @@ function setup_records(_data){
 
      })
 
-
-     // initialize this filtering system
-
      record_manager.init();
 
 }
+
+
+
+
 function after_filter(){
     record_manager.join_data()
+    //console.log(record_manager.json_data)
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
     var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
@@ -165,8 +164,8 @@ function after_filter(){
 
     record_manager.complete_end_data(end_date)
 
-     record_manager.complete_start_data(start_date)
-
+    record_manager.complete_start_data(start_date)
+//
     record_manager.clean_data()
 
 
@@ -203,8 +202,16 @@ function setup_interface(_event_settings){
 
     setTimeout(function(){
       if(record_manager.params && record_manager.params[0].date){
-            $("#filter_current_date").datepicker().val( record_manager.params[0].date)
-           // $("#filter_current_date").trigger('change');
+            $("#filter_current_date").datepicker().val( record_manager.params[0].date);
+            // we need this to trigger the creation of the plot
+            $("#filter_current_date").trigger('change');
+           // set the map bounds to include all the geojson
+            try{
+                map_manager.map.fitBounds(layer_manager.poly.getBounds());
+            }catch(e){
+                console.log("unable to zoom the map")
+
+            }
          }else{
             record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())
          }
