@@ -117,7 +117,7 @@ var required_files={".csv":{},".geojson":{}}
         // the data has been loaded via an upload form take the back door
 //        initialize_interface(required_files[".csv"].data,true)
 
-        record_manager.process_csv(required_files[".csv"].data,record_manager)
+        record_manager.parse_data(required_files[".csv"].data,record_manager)
         $("#data_file").html(required_files[".csv"].file_name)
         layer_manager.create_geojson(JSON.parse(required_files[".geojson"].data))
         $("#map_file").html(required_files[".geojson"].file_name)
