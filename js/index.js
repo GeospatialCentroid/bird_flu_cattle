@@ -193,7 +193,10 @@ function setup_interface(_event_settings){
             // set event label
             event_data[obj.label]=[]
             // create buckets with all the config specified events to be tracked
-            record_manager.populate_days(event_data[obj.label],obj.start,obj.end,end_date)
+            if(obj.end){
+               obj.end= obj.end.trim()
+            }
+            record_manager.populate_days(event_data[obj.label],obj.start.trim(),obj.end,end_date)
 
       }
        load_data("images/cow.svg","",populate_legend)
@@ -212,6 +215,9 @@ function setup_interface(_event_settings){
                 console.log("unable to zoom the map")
 
             }
+            //
+            console.log(event_data)
+
          }else{
             record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())
          }

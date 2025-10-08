@@ -137,9 +137,10 @@ class Record_Manager {
          }
         //artificially populate the CURRENT PEN value - we want to know where the cow moved from
         if($("#CURRENT_PEN").val()==0){
-              for(var i=this.json_data.length;i>0;i--){
+            console.log("Artificially populate the CURRENT PEN")
+              for(var i=1;i<this.json_data.length;i++){
                 // populate the "CURRENT PEN" value with the previous record matching the cow id
-                 for(var j=i-1;j>this.json_data.length;j--){
+                 for(var j=i-1;j>0;j--){
                     if(this.json_data[i]["ID"]==this.json_data[j]["ID"]){
                         this.json_data[i]["CURRENT PEN"]= this.json_data[j]["TO PEN"]
                         break
@@ -148,8 +149,8 @@ class Record_Manager {
             }
           }
         $("#model_data_config").hide()
-        record_manager.process_data(record_manager.json_data,record_manager);
 
+        record_manager.process_data(record_manager.json_data,record_manager);
 
     }
 
@@ -384,9 +385,10 @@ class Record_Manager {
         // called with event_data["sick"],"FLU","WELL",end_date)
         // create a sub set of the data
         //any record that has an EVENT labeled {_event_start} should have a record
-        //console.log("populate_days", _end_date)
+       //console.log("populate_days", _end_date,_array)
         for(var i=0;i<this.json_data.length;i++){
           var t = this.json_data[i];
+
           var end_date = false
           if(t["EVENT"].trim()==_event_start){
 
@@ -394,7 +396,8 @@ class Record_Manager {
                 if(_event_end && _event_end!=""){
                     for(var j=i+1;j<this.json_data.length;j++){
                          var u = this.json_data[j]
-                         // make sure the next event is later than the first and matched the desired end event name
+                         // make sure the next event is later than the first and matches the desired end event name
+
                          if(u["ID"]==t["ID"] && u["EVENT"].trim()==_event_end && moment(t["START DATE"],this.date_format).unix() < moment(u["START DATE"],this.date_format).unix()){
 //                           console.log("Closing t",t, "with u",u)
                             end_date=moment(u["START DATE"],this.date_format).unix()
