@@ -426,10 +426,12 @@ class Record_Manager {
         }
 
         if(infection_val){
+            // first sort
+            const sorted = [...this.json_data].sort((a, b) => a["START DATE"] - b["START DATE"]);
             for(var i=0;i<this.json_data.length;i++){
                  try{
-                    if(this.json_data[i]["EVENT"]==infection_val){
-                        infection_record = this.json_data[i]
+                    if(sorted[i]["EVENT"]==infection_val){
+                        infection_record = sorted[i]
 
                         $("#date_first_infection").html(infection_record["START DATE"].format('YYYY-MM-DD'))
                         $("#date_first_infection").click(function() {
@@ -464,35 +466,35 @@ class Record_Manager {
 
 
        marker_manager.reset();// remove all markers
-       for(var i=0;i<this.json_data.length;i++){
-             var t = this.json_data[i]
+            for(var i=0;i<this.json_data.length;i++){
+               var t = this.json_data[i]
 
-            if(_date.isBetween(t["START DATE"], t["END DATE"]) || _date.isSame(t["START DATE"]) ) {//|| _date.isSame( t["END DATE"])
+                if(_date.isBetween(t["START DATE"], t["END DATE"]) || _date.isSame(t["START DATE"]) ) {//|| _date.isSame( t["END DATE"])
 
-                if($.inArray(t["ID"], this.id_track['ids'])==-1){
-                    this.id_track['ids'].push(t["ID"])
+                    if($.inArray(t["ID"], this.id_track['ids'])==-1){
+                        this.id_track['ids'].push(t["ID"])
 
-                }else{
-                   // console.log(t["ID"], "is on the map more than once")
-                    this.id_track['duplicate_ids'].push(t["ID"])
-                }
-
-                // show the cows on the map
-                //console.log(t["IN PEN"])
-                // get the pen id
-                var location = layer_manager.get_poly_location(t["IN PEN"])
-                if(location){
-
-                    var marker = marker_manager.create_marker(t,location);
-                    var status = marker.options.icon.options.status
-                    if(status!='default'){
-                        this.id_track[status].push(t["ID"])//Was (marker)
+                    }else{
+                       // console.log(t["ID"], "is on the map more than once")
+                        this.id_track['duplicate_ids'].push(t["ID"])
                     }
-                }else{
-                    //console.log(t["IN PEN"], "not found")
-                    this.create_pen_warning(t["IN PEN"])
-                }
-           }
+
+                    // show the cows on the map
+                    //console.log(t["IN PEN"])
+                    // get the pen id
+                    var location = layer_manager.get_poly_location(t["IN PEN"])
+                    if(location){
+
+                        var marker = marker_manager.create_marker(t,location);
+                        var status = marker.options.icon.options.status
+                        if(status!='default'){
+                            this.id_track[status].push(t["ID"])//Was (marker)
+                        }
+                    }else{
+                        //console.log(t["IN PEN"], "not found")
+                        this.create_pen_warning(t["IN PEN"])
+                    }
+               }
         }
         $("#total_items").html( this.id_track["ids"].length)
         // add hyper link to data access

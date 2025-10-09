@@ -228,3 +228,4 @@ jQuery.fn.scrollTo = function(elem, speed) {
     }, speed == undefined ? 1000 : speed);
     return this;
 };
+

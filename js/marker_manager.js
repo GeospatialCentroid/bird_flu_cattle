@@ -88,7 +88,9 @@ class Marker_Manager {
       var legend = L.control({position: 'bottomright'});
         legend.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'info legend');
-            div.innerHTML = '<b>Cluster Number</b><select id="count_display_dropdown"><option value=1>Clinical Count</option><option value=2>Clinical Percentage</option><option value=3>Cow Count</option></select>';
+            div.innerHTML = '<b>Cluster Number</b><select id="count_display_dropdown" ><option value=1 data-toggle="tooltip" title="Show the count of clinical cows within each pen">Clinical Count</option><option value=2 data-toggle="tooltip" title="Show the percentage of clinical cows within each pen">Clinical Percentage</option><option value=3 data-toggle="tooltip" title="Show the count of cows within each pen">Cow Count</option></select>';
+            // tooltip
+             div.innerHTML += '<div id="dvDiv" style="display:none;position:absolute;padding:1px;border:1px solid #333333;;background-color:#fffedf;font-size:smaller;z-index:999;"></div><iframe id="frm" style="display:none;position:absolute;z-index:998"></iframe>'
             div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
             return div;
         };
