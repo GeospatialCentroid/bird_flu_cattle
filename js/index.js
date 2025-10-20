@@ -196,7 +196,9 @@ function setup_interface(_event_settings){
             if(obj.end){
                obj.end= obj.end.trim()
             }
-            record_manager.populate_days(event_data[obj.label],obj.start.trim(),obj.end,end_date)
+            if(obj.start!=null){
+                record_manager.populate_days(event_data[obj.label],obj.start.trim(),obj.end,end_date)
+            }
 
       }
        load_data("images/cow.svg","",populate_legend)
@@ -216,7 +218,7 @@ function setup_interface(_event_settings){
 
             }
             //
-            console.log(event_data)
+            //console.log(event_data)
 
          }else{
             record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())

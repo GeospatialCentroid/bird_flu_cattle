@@ -41,7 +41,7 @@ pens,geojson,data/Farm AL_8.29.25.geojson,id,,,id," {
         ]
     }
 ]}"
-movement,csv,data/Farm AL Centroid Data Cleaned 9.9.25.csv,ID,,DATE,," {
+movement,csv,data/FarmAL.dataraw_subset.csv,ID,,DATE,," {
 ""renderer"": {
 ""type"": ""simple"",
 ""symbol"": {

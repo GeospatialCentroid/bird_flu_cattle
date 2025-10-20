@@ -135,12 +135,13 @@ class Record_Manager {
                 }
             }
          }
+
         //artificially populate the CURRENT PEN value - we want to know where the cow moved from
         if($("#CURRENT_PEN").val()==0){
             console.log("Artificially populate the CURRENT PEN")
-              for(var i=1;i<this.json_data.length;i++){
+              for(var i=0;i<this.json_data.length;i++){
                 // populate the "CURRENT PEN" value with the previous record matching the cow id
-                 for(var j=i-1;j>0;j--){
+                 for(var j=i-1;j>=0;j--){
                     if(this.json_data[i]["ID"]==this.json_data[j]["ID"]){
                         this.json_data[i]["CURRENT PEN"]= this.json_data[j]["TO PEN"]
                         break
@@ -319,7 +320,7 @@ class Record_Manager {
             for(var j=i+1;j<this.json_data.length;j++){
                 var c = this.json_data[j] // create a reference to the current pen (c) record
                 // where the ids match and the to (t) pen matches the current (c) pan
-                if(t["ID"] == c["ID"] && t["TO PEN"] == c["CURRENT PEN"]){
+                if(t["ID"] == c["ID"] ){//&& t["TO PEN"] == c["CURRENT PEN"]
                      // for clarity add an "IN PEN"
                      t["IN PEN"]=t["TO PEN"]
                     // clean up the data by using 'start' and 'end' as date objects
