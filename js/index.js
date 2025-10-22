@@ -188,14 +188,14 @@ function setup_interface(_event_settings){
 
       record_manager.json_data=JSON.parse(JSON.stringify(record_manager.date_filter_data(record_manager.all_data,start,end)));
       if(record_manager.json_data.length==0){
-        console.log("No data available, please adjust data range");
-        $("#init_filter_start_date").addClass("error_field");
-         $("#init_filter_end_date").addClass("error_field");
-
-       setTimeout( function() {
-             show_model();
-        },300);
-        return
+            console.log("No data available, please adjust data range");
+            $("#init_filter_start_date").addClass("error_field");
+            $("#init_filter_end_date").addClass("error_field");
+            // add delay to show model since it fades closed
+            setTimeout( function() {
+                show_model();
+            },300);
+            return
 
       }
       record_manager.populate_search(record_manager.json_data)
@@ -249,7 +249,7 @@ function setup_interface(_event_settings){
 
             }
             //
-            //console.log(event_data)
+           console.log(event_data)
 
          }else{
             record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())

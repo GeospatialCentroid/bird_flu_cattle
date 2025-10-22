@@ -389,7 +389,7 @@ class Record_Manager {
        }
     }
     complete_start_data(_start_date){
-    console.log("_star_date",_start_date.format('YYYY-MM-DD' ))
+        console.log("_star_date",_start_date.format('YYYY-MM-DD' ))
         // Add a record for the first instance of each cow ID giving it a duration of _start_date to end date
         // be sure to omit records that start on the _start_date
         var ids=[] // store the unique ids
@@ -399,9 +399,14 @@ class Record_Manager {
                ids.push(t["ID"])
                //
                if(!moment(t["DATE"],this.date_format).isSame(_start_date)){
+               var cp = t["CURRENT PEN"];
+               if (cp === undefined){
+                 // We're at the start of the dataset with an event - use teh IN PEN instead
+                 cp = t["IN PEN"]
+               }
                record_manager.json_data.push({
                 "ID":t["ID"],
-                "IN PEN":t["CURRENT PEN"],
+                "IN PEN":cp,
                 "START DATE":_start_date,
                 "END DATE":moment(t["DATE"],this.date_format),
                 "EVENT":"Start"
@@ -450,6 +455,7 @@ class Record_Manager {
             prevRecord["EVENT"].trim() === _event_start &&
             event === _event_end
           ) {
+
             result.push({
               id,
               start_date: Date.parse(prevRecord["START DATE"]) / 1000,
@@ -467,11 +473,17 @@ class Record_Manager {
 
         // handle any unmatched start event (no end found)
         if (prevRecord) {
+            var from_pen = prevRecord["FROM PEN"]
+
+            // if there is no from pen ... use the current pen
+            if(from_pen === undefined){
+                from_pen=prevRecord["IN PEN"]
+            }
           result.push({
             id: prevRecord["ID"],
             start_date: Date.parse(prevRecord["START DATE"]) / 1000,
             end_date: _end_date.unix(),
-            from_pen: prevRecord["FROM PEN"],
+            from_pen: from_pen,
           });
         }
 
