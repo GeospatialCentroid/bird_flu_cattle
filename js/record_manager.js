@@ -12,6 +12,8 @@
     path_col    The column in the csv containing the file path to the html resource to load
     title_col    The column in the csv containing the title of the resource
     sub_title_col (optional) The column in the csv containing the sub title of the resource. If set, included in search.
+
+    The portions of the following code has been optimized for speed with support from ChatGPT Ref: https://chatgpt.com/share/68f908fb-001c-8004-a086-e059332ccbe0
  */
 
 
@@ -150,15 +152,21 @@ class Record_Manager {
         //artificially populate the CURRENT PEN value - we want to know where the cow moved from
         if($("#CURRENT_PEN").val()==0){
             console.log("Artificially populate the CURRENT PEN")
-              for(var i=0;i<this.json_data.length;i++){
-                // populate the "CURRENT PEN" value with the previous record matching the cow id
-                 for(var j=i-1;j>=0;j--){
-                    if(this.json_data[i]["ID"]==this.json_data[j]["ID"]){
-                        this.json_data[i]["CURRENT PEN"]= this.json_data[j]["TO PEN"]
-                        break
-                    }
+              const data = this.json_data;
+                const lastPenById = {}; // cache most recent "TO PEN" for each ID
+
+                for (let i = 0; i < data.length; i++) {
+                  const record = data[i];
+                  const id = record["ID"];
+
+                  // if we’ve seen this ID before, set CURRENT PEN
+                  if (lastPenById[id] !== undefined) {
+                    record["CURRENT PEN"] = lastPenById[id];
+                  }
+
+                  // update the last known TO PEN for this ID
+                  lastPenById[id] = record["TO PEN"];
                 }
-            }
           }
         $("#model_data_config").hide()
         $('body').removeClass('waiting-cursor');
@@ -342,24 +350,25 @@ class Record_Manager {
         //look for matches by finding the cow ID the TO PEN (t) and match on Cow ID and CURRENT PEN
 
         // Loop over all records
-        for(var i=0;i<this.json_data.length;i++){
+        const data = this.json_data;
+        const prevById = {}; // store last seen record per ID
+        const dateFormat = this.date_format;
 
-            var t = this.json_data[i] // create a reference to the (t) record
-            // Loop over all the records to join (looking forward)
-            for(var j=i+1;j<this.json_data.length;j++){
-                var c = this.json_data[j] // create a reference to the current pen (c) record
-                // where the ids match and the to (t) pen matches the current (c) pan
-                if(t["ID"] == c["ID"] ){//&& t["TO PEN"] == c["CURRENT PEN"] // turned off to assume the next record for a cow is in order
-                     // for clarity add an "IN PEN"
-                     t["IN PEN"]=t["TO PEN"]
-                    // clean up the data by using 'start' and 'end' as date objects
-                     t["START DATE"]=moment(t["DATE"],this.date_format)
-                     t["END DATE"]=moment(c["DATE"],this.date_format)
+        for (let i = 0; i < data.length; i++) {
+          const current = data[i];
+          const id = current["ID"];
+          const prev = prevById[id];
 
-                    break
-                }
-            }
-       }
+          if (prev) {
+            // We found the next record for this ID → update the previous record
+            prev["IN PEN"] = prev["TO PEN"];
+            prev["START DATE"] = moment(prev["DATE"], dateFormat);
+            prev["END DATE"] = moment(current["DATE"], dateFormat);
+          }
+
+          // Update the last seen record for this ID
+          prevById[id] = current;
+        }
     }
     //-------
     // functions for polishing the data for use in visualizing on the map
@@ -413,38 +422,59 @@ class Record_Manager {
        }
     }
 
-    populate_days(_array,_event_start,_event_end,_end_date){
+    populate_days(result,_event_start,_event_end,_end_date){
 
         // called with event_data["sick"],"FLU","WELL",end_date)
         // create a sub set of the data
         //any record that has an EVENT labeled {_event_start} should have a record
        //console.log("populate_days", _end_date,_array)
-        for(var i=0;i<this.json_data.length;i++){
-          var t = this.json_data[i];
+        const data = this.json_data;
+        const dateFormat = this.date_format;
 
-          var end_date = false
-          if(t["EVENT"].trim()==_event_start){
 
-                // find the end date which should be ahead
-                if(_event_end && _event_end!=""){
-                    for(var j=i+1;j<this.json_data.length;j++){
-                         var u = this.json_data[j]
-                         // make sure the next event is later than the first and matches the desired end event name
+        let prevRecord = null;
 
-                         if(u["ID"]==t["ID"] && u["EVENT"].trim()==_event_end && moment(t["START DATE"],this.date_format).unix() < moment(u["START DATE"],this.date_format).unix()){
-//                           console.log("Closing t",t, "with u",u)
-                            end_date=moment(u["START DATE"],this.date_format).unix()
-                            break;
-                         }
-                    }
-                }
-                if(!end_date){
-                    end_date=_end_date.unix()
-                }
-                _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],this.date_format).unix(), "end_date": end_date,"from_pen": t["FROM PEN"]})
+        for (let i = 0; i < data.length; i++) {
+          const t = data[i];
+          const event = t["EVENT"].trim();
+          const id = t["ID"];
+
+          // Precompute once (using Date.parse for speed)
+          const startUnix = Date.parse(t["START DATE"]) / 1000;
+
+          // If the previous record is for the same ID and a start event,
+          // and this one is the matching end event — close it.
+          if (
+            prevRecord &&
+            prevRecord["ID"] === id &&
+            prevRecord["EVENT"].trim() === _event_start &&
+            event === _event_end
+          ) {
+            result.push({
+              id,
+              start_date: Date.parse(prevRecord["START DATE"]) / 1000,
+              end_date: startUnix,
+              from_pen: prevRecord["FROM PEN"],
+            });
+            prevRecord = null; // reset after closing
+          } else {
+            // If this is a new start event, remember it
+            if (event === _event_start) {
+              prevRecord = t;
             }
-
+          }
         }
+
+        // handle any unmatched start event (no end found)
+        if (prevRecord) {
+          result.push({
+            id: prevRecord["ID"],
+            start_date: Date.parse(prevRecord["START DATE"]) / 1000,
+            end_date: _end_date.unix(),
+            from_pen: prevRecord["FROM PEN"],
+          });
+        }
+
     }
     get_first_infection_date(){
         var infection_val=false
