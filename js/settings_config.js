@@ -1,8 +1,10 @@
 
 
 function  init_event_prompt(data){
+    console.log("init_event_prompt")
     // populate the event prompt based on the loaded config
     setup_fields()
+    setup_dates(record_manager.all_data)
     $(".picker").drawrpalette("destroy");
     event_settings = data.event_settings // store the settings
       for (var e in event_settings){
@@ -67,6 +69,8 @@ get_dropdown=function(name){
      return select
 }
 process_data_forms=function(){
+    $('body').addClass('waiting-cursor');
+    console.log("process_data_forms")
     // look through all the forms and pull the information
     var posts=[]
     $("#data_form").children().each(function( index ) {
@@ -80,7 +84,7 @@ process_data_forms=function(){
     });
      $('#model_data_form').modal('hide');
     setup_interface(posts)
-
+    $('body').removeClass('waiting-cursor');
 }
 //----------
 on_file_change= function(event){
@@ -122,4 +126,21 @@ var required_files={".csv":{},".geojson":{}}
         layer_manager.create_geojson(JSON.parse(required_files[".geojson"].data))
         $("#map_file").html(required_files[".geojson"].file_name)
     }
+}
+
+function setup_dates(data){
+    var date_list =record_manager.get_date_list(record_manager,data)
+    var start = date_list[0];
+    var end = date_list[date_list.length-1]
+    console.log(start,end)
+    $("#init_filter_start_date").datepicker({ dateFormat: 'yy-mm-dd',
+                minDate:start.format('YYYY-MM-DD'),
+                maxDate: end.format('YYYY-MM-DD')}).val(start.format('YYYY-MM-DD'))
+
+
+
+        $("#init_filter_end_date").datepicker({ dateFormat: 'yy-mm-dd',
+                minDate:start.format('YYYY-MM-DD'),
+                maxDate: end.format('YYYY-MM-DD')}).val(end.format('YYYY-MM-DD'))
+
 }

@@ -87,23 +87,23 @@ class Record_Manager {
          });
     }
     parse_data(data,$this){
-
-     // convert the csv file to json and create a subset of the records as needed
-       // strip any extraneous tabs
-       $this.json_data= $.csv.toObjects(data.replaceAll('\t', ''));
-         console_log(record_manager)
-         // initialize this filtering system
-         $("#model_data_config").show()
-          const keys = Object.keys(record_manager.json_data[0]).sort();
-         // for each required field: populate a dropdown giving the user the option to select which column refers to what
-
+     console.log("parse_data")
+     if (!$this.json_data){
+        console.log("setting json_data")
+        // convert the csv file to json and create a subset of the records as needed
+        // strip any extraneous tabs
+        $this.json_data= $.csv.toObjects(data.replaceAll('\t', ''));
+        // initialize this filtering system
+        $("#model_data_config").show()
+        const keys = Object.keys(record_manager.json_data[0]).sort();
+        // for each required field: populate a dropdown giving the user the option to select which column refers to what
         for (var i=0;i<required_variables.length;i++){
             var rv = required_variables[i]
             var optional=""
             if (rv=="CURRENT PEN"){
                 optional=" (optional)"
             }
-             // create the label and dropdown
+            // create the label and dropdown
             var html ='<div class="d-flex align-items-center"><div class="form-row-item"><label for="'+rv+'_dropdown">'+rv+optional+'</label> '
             html+= '<select id="'+rv.replaceAll(" ","_")+'">'
             html+='<option value="0">Not Available</option>'
@@ -117,12 +117,13 @@ class Record_Manager {
 
             html+='</select></div></div>'
             $("#required_variables").append(html)
+            }
         }
-
     }
     data_config_set(){
+        $('body').addClass('waiting-cursor');
+        // called from interface
         //update the data to conform with the expected columns
-
          for(var i=0;i<this.json_data.length;i++){
             for(var j=0;j<required_variables.length;j++){
 
@@ -150,30 +151,15 @@ class Record_Manager {
             }
           }
         $("#model_data_config").hide()
-
+        $('body').removeClass('waiting-cursor');
         record_manager.process_data(record_manager.json_data,record_manager);
 
     }
 
      process_data(data,$this){
-        // account for dates
-        var date_list=[]
-        if($this?.date){
-            for (var i=0;i<$this.json_data.length;i++){
-                for (var c in $this.date){
-                var val = $this.json_data[i][$this.date[c]]
-                      if(val!=""){
-                       date_list.push(moment(val,$this.date_format))
-                      }
-                 }
-            }
-
-        }
-
-        //sort
-       // date_list= date_list.sort((a, b) => a.valueOf() - b.valueOf()); //not sorting results in not knowing the earliest data
-        var first_date= date_list.sort((a, b) => a.valueOf() - b.valueOf());// alternative to sorting the data
-        $this.add_date_search(first_date[0],date_list[date_list.length-1])
+        console.log("process_data!!!")
+        // create a copy of the original data
+        $this.all_data = JSON.parse(JSON.stringify(data))
 
         // index sort
         if($this.json_data[0]?.["INDEX"]){
@@ -185,7 +171,7 @@ class Record_Manager {
 
         }
         ///---
-        // now that we have the records we need create a filter menu
+        // now that we have the records we need to create a filter menu
         $this.generate_filters($this.json_data)
         $this.add_filter_watcher()
         $this.ids_added=true;//to prevent future ids
@@ -194,10 +180,6 @@ class Record_Manager {
             browser_control=true
 //            $this.set_filters()
 //            $this.filter()
-
-            //console.log(params,$this.params)
-
-
             browser_control=false
         }else{
 
@@ -217,12 +199,41 @@ class Record_Manager {
                   map_manager.map.invalidateSize();
             });
         },300);
-        after_filter();
 
+        load_data('settings_config.json','json',init_event_prompt)
 
     }
+    get_date_list($this,data){
+        var date_list=[]
+        if($this?.date){
+            for (var i=0;i<data.length;i++){
+                for (var c in $this.date){
+                var val = data[i][$this.date[c]]
+                      if(val!=""){
+                       date_list.push(moment(val,$this.date_format))
+                      }
+                 }
+            }
 
+        }
+        date_list.sort((a, b) => a.valueOf() - b.valueOf());
+        return date_list
+    }
+    date_filter_data(data,start,end){
+        var filtered_data=[];
+
+        for (var i=0;i<data.length;i++){
+            var obj = data[i];
+
+            if( moment(obj["DATE"],this.date_format).unix() >= moment(start,'YYYY-MM-DD').unix() && moment(obj["DATE"],this.date_format).unix() <= moment(end,'YYYY-MM-DD').unix()){
+                 filtered_data.push(obj);
+            }
+        }
+        return filtered_data;
+    }
     add_date_search(start,end){
+        console.log("add_date_search",start,end);
+          console.log("add_date_search",start.format('YYYY-MM-DD'),end.format('YYYY-MM-DD'));
         var  $this=this
         //date search
         $('#filter_date_checkbox').change(
@@ -230,21 +241,24 @@ class Record_Manager {
               record_manager.delay_date_change();
             }
         );
+         $("#filter_start_date").datepicker("destroy");
         $("#filter_start_date").datepicker({ dateFormat: 'yy-mm-dd',
                 minDate:start.format('YYYY-MM-DD'),
                 maxDate: end.format('YYYY-MM-DD')}).val(start.format('YYYY-MM-DD'))
 
 
-
+         $("#filter_end_date").datepicker("destroy");
         $("#filter_end_date").datepicker({ dateFormat: 'yy-mm-dd',
                 minDate:start.format('YYYY-MM-DD'),
                 maxDate: end.format('YYYY-MM-DD')}).val(end.format('YYYY-MM-DD'))
 
          // add current date
+        $("#filter_current_date").datepicker("destroy");
          $("#filter_current_date").datepicker({ dateFormat: 'yy-mm-dd',
                 minDate:start.format('YYYY-MM-DD'),
                 maxDate: end.format('YYYY-MM-DD')}).val(start.format('YYYY-MM-DD'))
 
+         $("#filter_current_date").off('change');
          $("#filter_current_date").change( function() {
               record_manager.search_by_date(moment($("#filter_current_date").val(),'YYYY-MM-DD') )
 
@@ -264,16 +278,20 @@ class Record_Manager {
               }
 
         });
-
+        $("#filter_start_date").off('change');
         $("#filter_start_date").change( function() {
             record_manager.delay_date_change()
 
         });
+        $("#filter_end_date").off('change');
         $("#filter_end_date").change( function() {
           record_manager.delay_date_change()
         });
         // use numeric equivalent for the slider
         var values = [start.unix(),end.unix()]
+        try{
+        $("#filter_date .filter_slider_box").slider( "destroy" );
+        }catch(e){}
         $("#filter_date .filter_slider_box").slider({
             range: true,
             min: values[0],
@@ -309,6 +327,7 @@ class Record_Manager {
     }
     ///
    join_data(){
+        console.log("join_data")
         // join the data to itself to add an end date
         //look for matches by finding the cow ID the TO PEN (t) and match on Cow ID and CURRENT PEN
 
@@ -320,7 +339,7 @@ class Record_Manager {
             for(var j=i+1;j<this.json_data.length;j++){
                 var c = this.json_data[j] // create a reference to the current pen (c) record
                 // where the ids match and the to (t) pen matches the current (c) pan
-                if(t["ID"] == c["ID"] ){//&& t["TO PEN"] == c["CURRENT PEN"]
+                if(t["ID"] == c["ID"] ){//&& t["TO PEN"] == c["CURRENT PEN"] // turned off to assume the next record for a cow is in order
                      // for clarity add an "IN PEN"
                      t["IN PEN"]=t["TO PEN"]
                     // clean up the data by using 'start' and 'end' as date objects
@@ -332,10 +351,13 @@ class Record_Manager {
             }
        }
     }
+    //-------
+    // functions for polishing the data for use in visualizing on the map
+    //-------
    complete_end_data(_end_date){
-   console.log("_end_date",_end_date.format('YYYY-MM-DD' ))
+        console.log("_end_date",_end_date.format('YYYY-MM-DD' ))
         // Since we only have movement data - we don't know how long the cows have been in their last Pen
-        // For any records that don't have an END Date - use the End Date
+        // For any records that doesn't have an END Date - use the End Date
         for(var i=0;i<this.json_data.length;i++){
             var t = this.json_data[i]
              if(!t.hasOwnProperty("END DATE")){
@@ -409,7 +431,6 @@ class Record_Manager {
                 if(!end_date){
                     end_date=_end_date.unix()
                 }
-
                 _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],this.date_format).unix(), "end_date": end_date,"from_pen": t["FROM PEN"]})
             }
 
@@ -718,10 +739,14 @@ class Record_Manager {
           }
           return filtered;
         }, []);
-
+      try{
+      $( "#search" ).autocomplete("destroy");
+      }catch(e){}
       $( "#search" ).autocomplete({
           source: this.subset_data,
           minLength: 0,
+          max: 100,
+          delay: 300,
           select: function( event, ui ) {
                 event.preventDefault();
                 // prevent the appended bracket value from being used in the search

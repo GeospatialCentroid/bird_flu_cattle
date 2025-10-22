@@ -225,15 +225,20 @@
   </div>
 </div>
 
-<div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1" aria-labelledby="data_form_label" aria-hidden="true" data-bs-backdrop="true">
+<div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1"  data-bs-backdrop="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="data_form_label">Track Events</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
           </div>
           <div class="modal-body">
+                <label class="form-check-label font-weight-bold" for="init_filter_start_date">Start Date</label>
+                <input id="init_filter_start_date" type="text" class="date_field"/>
+                <span id="init_filter_date_to"></span>
 
+                <label class="form-check-label font-weight-bold" for="init_filter_end_date">End Date</label>
+                <input id="init_filter_end_date" type="text" class="date_field"/>
               <div id="data_form">
                  <div class="row">
                       <input class="label" type="input" data="label"/>

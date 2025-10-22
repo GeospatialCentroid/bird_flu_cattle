@@ -992,7 +992,11 @@ vertical-align: top;
 .marker-cluster-warn span {
     line-height: 30px;
 }
-.date_field {position: relative; z-index:10000;}
+.date_field {position: relative; z-index:100;}
+
+#ui-datepicker-div {
+    z-index: 99999999 !important; /* Use !important to ensure it overrides other styles */
+}
 .plot {
 margin-bottom: 45px !important;
 max-height: unset !important;
@@ -1023,4 +1027,10 @@ input.label{
 .form-row-item label {
   flex-shrink: 0; /* Prevents label from shrinking */
   white-space: nowrap; /* Keeps label on one line */
+}
+.error_field{
+    border-color: red;
+}
+.waiting-cursor {
+  cursor: wait;
 }

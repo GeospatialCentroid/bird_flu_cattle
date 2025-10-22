@@ -85,7 +85,14 @@ function initialize_interface(_data,wait){
     load_data(config[0]["data"],"geojson",layer_manager.create_geojson)
     $("#map_file").html(config[0]["data"])
 
-    setup_records(config[1])
+    setup_records(config[1]);
+
+    // When the model  "tracking events" is closed
+    $("#model_data_form").on("hidden.bs.modal", function () {
+
+
+        $("#filter_current_date").trigger('change');
+    });
 
 }
 
@@ -154,7 +161,8 @@ function setup_records(_data){
 
 
 function after_filter(){
-    record_manager.join_data()
+    console.log("after_filter")
+    record_manager.join_data();
     //console.log(record_manager.json_data)
     var start_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc()
     //var end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
@@ -168,16 +176,37 @@ function after_filter(){
 //
     record_manager.clean_data()
 
-
-    $("#model_data_form").on("hidden.bs.modal", function () {
-       process_data_forms();
-        $("#filter_current_date").trigger('change');
-    });
-   load_data('settings_config.json','json',init_event_prompt)
-
 }
 
 function setup_interface(_event_settings){
+
+      console.log("setup_interface")
+      // make sure to account for date filers
+      var start =  $("#init_filter_start_date").val()
+      var end =  $("#init_filter_end_date").val()
+      // filter the data
+
+      record_manager.json_data=JSON.parse(JSON.stringify(record_manager.date_filter_data(record_manager.all_data,start,end)));
+      if(record_manager.json_data.length==0){
+        console.log("No data available, please adjust data range");
+        $("#init_filter_start_date").addClass("error_field");
+         $("#init_filter_end_date").addClass("error_field");
+
+       setTimeout( function() {
+             show_model();
+        },300);
+        return
+
+      }
+      record_manager.populate_search(record_manager.json_data)
+      //
+      $("#init_filter_start_date").removeClass("error_field");
+      $("#init_filter_end_date").removeClass("error_field");
+      // update interface dates
+      var date_list = record_manager.get_date_list(record_manager,record_manager.json_data)
+      record_manager.add_date_search(date_list[0],date_list[date_list.length-1])
+      after_filter()
+      //
       event_settings =_event_settings
       var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1])
       event_data ={}
@@ -201,7 +230,9 @@ function setup_interface(_event_settings){
             }
 
       }
+
        load_data("images/cow.svg","",populate_legend)
+
        populate_cow_list()
        record_manager.get_first_infection_date()
 
