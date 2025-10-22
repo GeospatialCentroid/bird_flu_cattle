@@ -124,18 +124,28 @@ class Record_Manager {
         $('body').addClass('waiting-cursor');
         // called from interface
         //update the data to conform with the expected columns
-         for(var i=0;i<this.json_data.length;i++){
-            for(var j=0;j<required_variables.length;j++){
+          // Precompute the variable-to-oldKey map once
+        const keyMap = {};
+        for (let j = 0; j < required_variables.length; j++) {
+          const rv = required_variables[j];
+          const oldKey = document.getElementById(rv.replaceAll(" ", "_"))?.value;
+          if (oldKey && oldKey !== rv) {
+            keyMap[rv] = oldKey;
+          }
+        }
 
-                var old_key=$("#"+required_variables[j].replaceAll(" ","_")).val();
-                // make sure the key is different - otherwise we might delete it
-                if(old_key!=required_variables[j]){
-                    this.json_data[i][required_variables[j]] = this.json_data[i][old_key];
-                    // Delete the old key
-                    delete this.json_data[i][old_key];
-                }
+        // Now update json_data efficiently
+        const data = this.json_data;
+        for (let i = 0; i < data.length; i++) {
+          const obj = data[i];
+          for (const [newKey, oldKey] of Object.entries(keyMap)) {
+            if (oldKey in obj) {
+              obj[newKey] = obj[oldKey];
+              delete obj[oldKey];
             }
-         }
+          }
+        }
+
 
         //artificially populate the CURRENT PEN value - we want to know where the cow moved from
         if($("#CURRENT_PEN").val()==0){
