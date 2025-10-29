@@ -228,6 +228,7 @@ function setup_interface(_event_settings){
             if(obj.start!=null){
                 record_manager.populate_days(event_data[obj.label],obj.start.trim(),obj.end,end_date)
             }
+            console.log("event_data",event_data)
 
       }
 

@@ -427,66 +427,38 @@ class Record_Manager {
        }
     }
 
-    populate_days(result,_event_start,_event_end,_end_date){
+    populate_days(_array,_event_start,_event_end,_end_date){
 
         // called with event_data["sick"],"FLU","WELL",end_date)
         // create a sub set of the data
         //any record that has an EVENT labeled {_event_start} should have a record
        //console.log("populate_days", _end_date,_array)
-        const data = this.json_data;
-        const dateFormat = this.date_format;
+        for(var i=0;i<this.json_data.length;i++){
+          var t = this.json_data[i];
 
+          var end_date = false
+          if(t["EVENT"].trim()==_event_start){
 
-        let prevRecord = null;
+                // find the end date which should be ahead
+                if(_event_end && _event_end!=""){
+                    for(var j=i+1;j<this.json_data.length;j++){
+                         var u = this.json_data[j]
+                         // make sure the next event is later than the first and matches the desired end event name
 
-        for (let i = 0; i < data.length; i++) {
-          const t = data[i];
-          const event = t["EVENT"].trim();
-          const id = t["ID"];
-
-          // Precompute once (using Date.parse for speed)
-          const startUnix = Date.parse(t["START DATE"]) / 1000;
-
-          // If the previous record is for the same ID and a start event,
-          // and this one is the matching end event — close it.
-          if (
-            prevRecord &&
-            prevRecord["ID"] === id &&
-            prevRecord["EVENT"].trim() === _event_start &&
-            event === _event_end
-          ) {
-
-            result.push({
-              id,
-              start_date: Date.parse(prevRecord["START DATE"]) / 1000,
-              end_date: startUnix,
-              from_pen: prevRecord["FROM PEN"],
-            });
-            prevRecord = null; // reset after closing
-          } else {
-            // If this is a new start event, remember it
-            if (event === _event_start) {
-              prevRecord = t;
+                         if(u["ID"]==t["ID"] && u["EVENT"].trim()==_event_end && moment(t["START DATE"],this.date_format).unix() < moment(u["START DATE"],this.date_format).unix()){
+//                           console.log("Closing t",t, "with u",u)
+                            end_date=moment(u["START DATE"],this.date_format).unix()
+                            break;
+                         }
+                    }
+                }
+                if(!end_date){
+                    end_date=_end_date.unix()
+                }
+                _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],this.date_format).unix(), "end_date": end_date,"from_pen": t["FROM PEN"]})
             }
-          }
+
         }
-
-        // handle any unmatched start event (no end found)
-        if (prevRecord) {
-            var from_pen = prevRecord["FROM PEN"]
-
-            // if there is no from pen ... use the current pen
-            if(from_pen === undefined){
-                from_pen=prevRecord["IN PEN"]
-            }
-          result.push({
-            id: prevRecord["ID"],
-            start_date: Date.parse(prevRecord["START DATE"]) / 1000,
-            end_date: _end_date.unix(),
-            from_pen: from_pen,
-          });
-        }
-
     }
     get_first_infection_date(){
         var infection_val=false
