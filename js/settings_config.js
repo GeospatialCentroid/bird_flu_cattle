@@ -132,7 +132,7 @@ function setup_dates(data){
     var date_list =record_manager.get_date_list(record_manager,data)
     var start = date_list[0];
     var end = date_list[date_list.length-1]
-    console.log(start,end)
+    console_log(start,end)
     $("#init_filter_start_date").datepicker({ dateFormat: 'yy-mm-dd',
                 minDate:start.format('YYYY-MM-DD'),
                 maxDate: end.format('YYYY-MM-DD')}).val(start.format('YYYY-MM-DD'))

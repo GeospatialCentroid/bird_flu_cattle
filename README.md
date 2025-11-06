@@ -29,6 +29,7 @@ This GeoJSON file can be created using https://geojson.io. A brief outline of ho
    - After adding all pens (with 'id' numbers), click **Save** on the top left of the interface. This will save a GeoJSON file to your computer. You will be able to reopen this within https://geojson.io to continue to edit 
      the map, if needed.
    - Note: If you'd like to see additional attributes in the popup, you can add them. And if you assign an attribute named 'name', this will appear on the map next to the 'id'. 
+   - To support pens that may have multiple ids, use the 'alt_ids' property and add a comma separated list of additional ids.
    
 ## Running the App
 Once you have both required files on your computer, make sure they are saved in the same directory. Navigate to https://geospatialcentroid.github.io/bird_flu_cattle. Within your file system, navigate to the folder where the required files are saved and drag them, in turn, to the file input field of the application. 

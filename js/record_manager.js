@@ -239,11 +239,38 @@ class Record_Manager {
     }
     date_filter_data(data,start,end){
         var filtered_data=[];
+        var ids=[]
+        var has_ids=false
+        // lets also filer the data by ids that do not have a Cluster Color event
+         if ($('#filter_id_checkbox').is(':checked')){
+            has_ids=true
+            // Get the ids of all the clinical cows
+            var event_name =false;
+            for(var i in event_settings){
+                var e = event_settings[i]
+                if(e["type"]=='cluster_color'){
+                    event_name = e.start
+
+                }
+             }
+             if(event_name){
+               // collect all the cow ids that have a matching event which we'll filter by
+
+                   for (var i=0;i<data.length;i++){
+                         var obj = data[i];
+                         if(obj["EVENT"]==event_name){
+                            ids.push(obj["ID"])
+                         }
+                   }
+
+
+             }
+        }
 
         for (var i=0;i<data.length;i++){
             var obj = data[i];
 
-            if( moment(obj["DATE"],this.date_format).unix() >= moment(start,'YYYY-MM-DD').unix() && moment(obj["DATE"],this.date_format).unix() <= moment(end,'YYYY-MM-DD').unix()){
+            if( (!has_ids || ids.includes(obj["ID"])) && moment(obj["DATE"],this.date_format).unix() >= moment(start,'YYYY-MM-DD').unix() && moment(obj["DATE"],this.date_format).unix() <= moment(end,'YYYY-MM-DD').unix()){
                  filtered_data.push(obj);
             }
         }

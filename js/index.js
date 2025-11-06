@@ -228,7 +228,7 @@ function setup_interface(_event_settings){
             if(obj.start!=null){
                 record_manager.populate_days(event_data[obj.label],obj.start.trim(),obj.end,end_date)
             }
-            console.log("event_data",event_data)
+            console_log("event_data",event_data)
 
       }
 
@@ -250,7 +250,7 @@ function setup_interface(_event_settings){
 
             }
             //
-           console.log(event_data)
+           console_log(event_data)
 
          }else{
             record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())

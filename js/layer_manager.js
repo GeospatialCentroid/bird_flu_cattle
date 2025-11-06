@@ -20,7 +20,9 @@ class Layer_Manager {
   create_geojson(_data){
         // create lookup chart too
         layer_manager.pen_center={}
-        //#b5ffb4
+
+        // create lookup for alt_ids
+        layer_manager.alt_pen_center={}
         layer_manager.poly = L.geoJson(_data, {
             style: {
                 fillColor: '#b5ffb4',
@@ -73,16 +75,29 @@ class Layer_Manager {
                 });
             }
         })
-       layer_manager.poly.addTo(map_manager.map);
+        layer_manager.poly.addTo(map_manager.map);
 
-         layer_manager.poly.eachLayer(function(layer) {
+        layer_manager.poly.eachLayer(function(layer) {
+            // populate an object with the pen id as the key and center point for use in quick positioning of the cows
             layer_manager.pen_center[String(layer.feature.properties.id)]=layer.getCenter()
-         });
+
+            // do the same for the alt pen centers
+            if(layer.feature.properties.hasOwnProperty('alt_ids')){
+               var alt_ids =  layer.feature.properties.alt_ids.split(",");
+               for(var a in alt_ids){
+                    layer_manager.alt_pen_center[String(alt_ids[a])]=layer.getCenter()
+               }
+            }
+
+        });
     }
     get_poly_location(_id){
+
         // cows are positioned in pens each pen should know how many cows it contains
-        if(!String(_id) in layer_manager.pen_center){
-            return
+        if(!layer_manager.pen_center.hasOwnProperty(String(_id))){
+            // pen not found
+            // lets try to find it in the alt ids
+           return layer_manager.alt_pen_center[String(_id)]
         }
 
        return layer_manager.pen_center[String(_id)]
