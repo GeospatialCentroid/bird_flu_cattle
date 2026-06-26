@@ -238,24 +238,24 @@ function setup_interface(_event_settings){
        record_manager.get_first_infection_date()
 
     setTimeout(function(){
+      // 1. Handle the date filtering based on whether params exist
       if(record_manager.params && record_manager.params[0].date){
             $("#filter_current_date").datepicker().val( record_manager.params[0].date);
             // we need this to trigger the creation of the plot
             $("#filter_current_date").trigger('change');
-           // set the map bounds to include all the geojson
-            try{
-                map_manager.map.fitBounds(layer_manager.poly.getBounds());
-            }catch(e){
-                console.log("unable to zoom the map")
-
-            }
-            //
-           console_log(event_data)
-
-         }else{
-            record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc())
-         }
-    },1000);
+            console_log(event_data);
+      } else {
+            record_manager.search_by_date(moment.unix($("#filter_date .filter_slider_box").slider("values")[0]).utc());
+      }
+      
+      // 2. Zoom the map regardless of how the app was launched
+      console.log("Zoom the MAP!!!!!!");
+      try {
+          map_manager.map.fitBounds(layer_manager.poly.getBounds());
+      } catch(e) {
+          console.log("unable to zoom the map", e);
+      }
+    }, 1000);
 
 }
 function populate_legend(_data){
