@@ -234,7 +234,6 @@ function setup_interface(_event_settings){
 
        load_data("images/cow.svg","",populate_legend)
 
-       populate_cow_list()
        record_manager.get_first_infection_date()
 
     setTimeout(function(){
@@ -259,33 +258,31 @@ function setup_interface(_event_settings){
 
 }
 function populate_legend(_data){
-    svg = _data // store the svg file globally
+    svg = _data; // store the svg file globally
+    
     // create the legend - dynamically injecting the cow information
-    html="<table>"
-    html+="<tr><td width=30>"+svg+" </td><td>Non-clinical</td></tr>"
+    // Added width=100% to space out the counts nicely
+    var html = "<table style='width: 100%;'>"; 
+    
+    // Non-clinical row
+    html += "<tr><td width='30'>" + svg + " </td><td>Non-clinical</td><td class='text-end'></td></tr>";
+    
     for(var i in event_settings){
-
-        var obj = event_settings[i]
-        if(obj["type"]!='plot'){
-            html+="<tr><td class='marker_"+obj.label+" shadow'>"+svg+" </td><td>"+obj.label+"</td></tr>"
+        var obj = event_settings[i];
+        if(obj["type"] != 'plot'){
+            html += "<tr>";
+            html += "<td class='marker_" + obj.label + " shadow'>" + svg + " </td>";
+            html += "<td>" + obj.label + "</td>";
+            
+            // This is the span that receives the dynamic count!
+            html += "<td class='text-end'><span class='hyper font-weight-bold' id='total_" + obj.label + "'></span></td>";
+            html += "</tr>";
         }
     }
 
-    html+="</table>"
-    $("#legend").html(html)
+    html += "</table>";
+    $("#legend").html(html);
 }
-function populate_cow_list(){
-    var html=""
-    for(var i in event_settings){
-        var obj = event_settings[i]
-        if(obj["type"]!='plot'){
-            html+=" <span class='font-weight-bold'>"+obj.label+" Cows:</span> <span class='hyper' id='total_"+obj.label+"'></span> <br/>"
-        }
-    }
-
-     $("#cow_count_list").html(html)
-}
-
 
  function save_params(){
     // access the managers and store the info URL sharing

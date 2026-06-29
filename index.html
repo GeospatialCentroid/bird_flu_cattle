@@ -57,240 +57,92 @@
 
     <script src="https://d3js.org/d3.v6.js"></script>
 
+
 <body>
-<div class="overlay ">
-    <div class="progress">
-          <div id="loader" class="progress-bar progress-bar-success progress-bar-striped active align-middle bg-info" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-            <span id="current-progress"></span>
-          </div>
-
-    </div>
-    <br/>
-      <br/>
-    <div id="file_upload_controls"  style="display:none;">
-        Please choose a   <span class="font-weight-bold">.csv</span> and a   <span class="font-weight-bold">.geojson</span> file to begin
-        <label class="form-label" for="data_input">Pen Movement and Map Data</label><input class="form-control" type="file" id="data_input" accept=".geojson,.csv" multiple/>
-      </div>
+<div class="overlay">
+<div class="progress">
+<div id="loader" class="progress-bar progress-bar-success progress-bar-striped active bg-info" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%;"><span id="current-progress"></span></div>
 </div>
+<br><br>
+<div id="file_upload_controls" style="display:none;">Please choose a <strong>.csv</strong> and <strong>.geojson</strong> file to begin.<label class="form-label mt-3" for="data_input">Pen Movement and Map Data</label><input class="form-control" type="file" id="data_input" accept=".geojson,.csv" multiple></div>
+</div>
+<div class="dashboard">
+<header class="dashboard-header card">
+<div class="header-title"><h2>Bird Flu Cattle</h2><span class="dashboard-subtitle">Interactive Animal Movement Dashboard</span></div>
+<div class="header-item"><span class="header-label">Data File</span><span id="data_file"></span></div>
+<div class="header-item"><span class="header-label">Map File</span><span id="map_file"></span></div>
+<div class="header-actions"><button class="btn btn-light" onclick="show_model()" title="Settings"><i class="bi bi-gear-fill"></i></button><a id="git_but" class="btn btn-light" href="https://github.com/GeospatialCentroid/bird_flu_cattle" target="_blank" title="GitHub Repository"><i class="bi bi-github"></i></a></div>
+</header>
+<div class="dashboard-main">
+<section class="map-column"><div class="card map-card"><div id="map_wrapper"><div id="map"></div></div></div></section>
+<aside class="sidebar-column">
+<section class="card metrics-card"><div class="metric-grid">
+  <div class="metric">
+    <div class="metric-label">Unique Cows</div><div id="total_items" class="metric-value hyper"></div></div><div class="metric">
+    <div class="metric-label">Duplicate Cows</div><div id="duplicate_items" class="metric-value hyper"></div></div></div>
 
-<div class="container">
+    <div id="warning" class="warning-box"></div></section>
+<section class="card"><div class="input-group"><input id="search" type="text" class="form-control" placeholder="Search by Cow ID"><button id="search_but" class="btn btn-primary"><i class="bi bi-search"></i></button></div></section>
+<section class="card"><h6>Current Date</h6>
+  
+  
+    <div class="date-input-wrapper">
+              <input id="filter_current_date" class="date_field" type="text" placeholder="YYYY-MM-DD">
+              <i class="bi bi-calendar-event"></i> </div>
+    <div class="btn-group mt-2"><button id="date_advance_backward" class="btn btn-outline-secondary" onclick="record_manager.move_to_date(-1)"><i class="bi bi-arrow-left"></i></button><button id="date_advance_forward" class="btn btn-outline-secondary" onclick="record_manager.move_to_date(1)"><i class="bi bi-arrow-right"></i></button></div>
+  </section>
 
+  <div id="filter_date">
 
-<div class="row">
-        <div class="col d-flex justify-content-between">
-             <span class="header_text">Bird Flu Cattle</span>
-            <span class="font-weight-bold">Data File:</span><span id="data_file"></span>
-            <span class="font-weight-bold">Map File:</span><span id="map_file"></span>
-            <button type="button" class="btn" onclick="show_model()" title="Settings">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
-                  <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"></path>
-                  <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"></path>
-                </svg>
-            </button>
-            <div id="git_but" ><a class="btn btn-default" href="https://github.com/GeospatialCentroid/bird_flu_cattle" target="git" data-toggle="tooltip" title="Go to Git Repo" data-original-title="Go to git Repo"><i class="bi bi-github"></i></a></div>
+  <section class="card">
+      <h6>Date Range</h6>
+
+      <div class="date-row">
+        <div class="date-input-group">
+            <label for="filter_start_date">Start Date</label>
+            <div class="date-input-wrapper">
+            <input id="filter_start_date" class="date_field" type="text" placeholder="YYYY-MM-DD">
+            <i class="bi bi-calendar-event"></i> </div>
+        </div>
+
+        <div class="date-input-group">
+            <label for="filter_end_date">End Date</label>
+            <div class="date-input-wrapper">
+            <input id="filter_end_date" class="date_field" type="text" placeholder="YYYY-MM-DD">
+            <i class="bi bi-calendar-event"></i> </div>
 
         </div>
     </div>
 
-    <div class="row mb-2">
+      <div class="filter_slider_box mt-3"></div>
+  </section>
 
-        <div class="col">
-               <div id="map_wrapper" >
-                    <div id="map">
-                    </div>
-                </div>
+    <section class="card">
+        <h6>Playback</h6>
 
-        </div>
-    </div>
-
-    <div class="row">
-             <div class="col">
-                    <div>
-
-                        <div class="input-group search_wrapper">
-                              <input id="search" type="text" class="form-control" placeholder="Search by Cow ID">
-                              <div class="input-group-append">
-                                <button class="btn  btn-primary" type="button" id="search_but"> <i class="bi bi-search"></i></button>
-                              </div>
-                      </div>
-                </div>
-             </div>
-            <div class="col-md-4 inline" id="filter_date">
-                <label class="form-check-label font-weight-bold" for="filter_start_date">Start Date</label>
-                         <input id="filter_start_date" type="text" class="date_field"/>
-                         <span id="filter_date_to"></span>
-
-                <label class="form-check-label font-weight-bold" for="filter_end_date">End Date</label>
-                         <input id="filter_end_date" type="text" class="date_field"/>
-                 <div class="btn-group" role="group" aria-label="playback speed">
-                     <span class="font-weight-bold"> Play Speed</span> &nbsp;<select id="playback_speed_dropdown"><option value=0.5>0.5</option><option value=1 selected>Normal</option><option value=1.5>1.5</option></select>
-                 </div>
-                     <div class='filter_slider_box slider-range'></div>
-
-                <button class="btn btn-outline-secondary slider_toggle " onclick="record_manager.slider_toggle(this)" type="button"><i class="bi bi-play-fill"></i></button>
-
-            </div>
-            <div class="col">
-                <label class="form-check-label font-weight-bold" for="filter_current_date">Current Date</label>
-                         <input id="filter_current_date" type="text" class="date_field"/>
-                <div class="btn-group" role="group" aria-label="date advance">
-                         <button id="date_advance_backward" class="btn btn-outline-secondary " onclick="record_manager.move_to_date(-1)" type="button"><i class="bi bi-arrow-left-short"></i></button>
-                         <button id="date_advance_forward" class="btn btn-outline-secondary " onclick="record_manager.move_to_date(1)" type="button"><i class="bi bi-arrow-right-short"></i></button>
-                </div>
-
-                <label class="form-check-label font-weight-bold" for="date_first_infection">First Date of infection</label>
-                <button id="date_first_infection" class="btn btn-outline-secondary " type="button"></button>
-
-            </div>
-            <div class="col" >
-                <span class="font-weight-bold">Total Unique Cows:</span> <span id="total_items" class="hyper"></span> <br/>
-                 <span class="font-weight-bold">Duplicate Cows:</span> <span id="duplicate_items" class="hyper"></span> <br/>
-                 <div id="cow_count_list"></div>
-                 <span id="warning"></span>
-            </div>
-
+        <div class="mb-2">
+            <label>Speed</label>
+            <select id="playback_speed_dropdown" class="form-select">
+                <option value="0.5">0.5×</option>
+                <option selected value="1">Normal</option>
+                <option value="1.5">1.5×</option>
+            </select>
         </div>
 
-    </div>
+       
+
+        <button class="btn btn-primary w-100 slider_toggle" onclick="record_manager.slider_toggle(this)">
+            <i class="bi bi-play-fill"></i> Play Timeline
+        </button>
+    </section>
 
 </div>
-
-<div id="data_table_wrapper">
-            <div id="data_table_total" class="float-left">
-                <table>
-                    <tr>
-                        <td>
-                            <span class="total_results" ></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <span class="total_showing"></span>
-                        </td>
-                        <td>
-                            <div class="data_table_spinner_wrapper">
-                                <div id="data_table_spinner" class="spinner-border spinner-border-sm" role="status">
-                                  <span class="sr-only"></span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div id="data_table_select" class="float-left"></div>
-                <button type="button" class="btn btn-outline-secondary bi bi-x-sm btn data_table_download0" onclick='table_manager.download()' title="Download current cow data">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-arrow-down" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd" d="M7.646 10.854a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 9.293V5.5a.5.5 0 0 0-1 0v3.793L6.354 8.146a.5.5 0 1 0-.708.708z"></path>
-                      <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383m.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z"></path>
-                    </svg>
-                  <span class="visually-hidden">Button</span>
-                </button>
-                <button type="button" class="btn btn-outline-secondary bi bi-x-sm btn data_table_download1" onclick='table_manager.download_all()' title="Download all cow data">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
-                      <path d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2m2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708"/>
-                    </svg>
-                  <span class="visually-hidden">Button</span>
-                </button>
-                 <button type="button" class='btn btn-secondary bi bi-x-sm btn data_table_close' onclick='table_manager.close()' title="Close">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-                      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-                    </svg>
-                </button>
-
-            <div id ="data_table"></div>
-        </div>
-
-    </div>
-
+<section class="card"><h6>First Infection</h6><button id="date_first_infection" class="btn btn-outline-primary w-100"></button></section>
+</aside>
 </div>
-
-<div class="modal" tabindex="-1" role="dialog" id="model_data_config">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Data Config</h5>
-      </div>
-      <div class="modal-body">
-        <p>Please specify which columns to use:</p>
-          <form>
-            <div id="required_variables" class="d-flex flex-column gap-2"></div>
-          </form>
-      </div>
-
-      <div class="modal-footer">
-        <button  id="data_config_save_but" onclick="record_manager.data_config_set();" type="button" class="btn btn-primary">Submit</button>
-      </div>
-    </div>
-  </div>
+<section class="card table-card"><div class="table-toolbar"><div class="table-stats"><div id="data_table_total"><div><span class="total_results"></span></div><div><span class="total_showing"></span></div></div></div><div class="table-actions"><div id="data_table_select"></div><button class="btn btn-outline-secondary" onclick="table_manager.download()" title="Download current results"><i class="bi bi-cloud-arrow-down"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.download_all()" title="Download all records"><i class="bi bi-cloud-arrow-down-fill"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.close()" title="Close"><i class="bi bi-x"></i></button></div></div><div id="data_table" class="dashboard-table"></div></section>
 </div>
-
-<div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1"  data-bs-backdrop="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="data_form_label">Track Events</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
-          </div>
-          <div class="modal-body">
-                <label class="form-check-label font-weight-bold" for="init_filter_start_date">Start Date</label>
-                <input id="init_filter_start_date" type="text" class="date_field"/>
-                <span id="init_filter_date_to"></span>
-
-                <label class="form-check-label font-weight-bold" for="init_filter_end_date">End Date</label>
-                <input id="init_filter_end_date" type="text" class="date_field"/>
-
-
-              <label for="filter_id_checkbox">Filter by Cluster Color Event</label>
-              <input class="form-check-input" type="checkbox" value="" id="filter_id_checkbox" >
-
-              <div id="data_form">
-                 <div class="row">
-                      <input class="label" type="input" data="label"/>
-                      <div class="col">
-                          <label for="start_dropdown">Start Event</label>
-                         <div id="start_dropdown" class="start_dropdown"></div>
-                      </div>
-                     <div class="col">
-                          <label for="end_dropdown">End Event</label>
-                         <div id="end_dropdown" class="end_dropdown"></div>
-                      </div>
-
-                     <div class="col">
-                          <label for="type_dropdown">Additional Visualization</label>
-                            <select id="type_display_dropdown" data="type">
-                                <option value="cluster_color">Cluster Color</option>
-                                <option value="cluster_outline">Cluster Outline</option>
-                                <option value="plot">Plot</option>
-                                <option value="None"></option>
-                            </select>
-                      </div>
-                      <div class="col">
-                          <label for="cow_color">Cow Color</label>
-                          <span class="cow_color"><input type="text" class="cow_color picker" value="" data="color"/></span>
-                      </div>
-                      <div class="col">
-                         <button type="button" class="btn btn-success duplicate" onclick="duplicate_row(this);fix_picker();">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                             <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path>
-                          </svg>
-                         </button>
-                          <button type="button" class="btn btn-danger" onclick="delete_row(this);">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
-                              <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/>
-                            </svg>
-                         </button>
-                      </div>
-                   </div>
-
-              </div>
-          </div>
-          <div class="modal-footer">
-            <button id="data_form_save_but" onclick="process_data_forms();" type="button" class="btn btn-primary">Submit</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
+<div class="modal" tabindex="-1" role="dialog" id="model_data_config"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Data Config</h5></div><div class="modal-body"><p>Please specify which columns to use:</p><form><div id="required_variables" class="d-flex flex-column gap-2"></div></form></div><div class="modal-footer"><button id="data_config_save_but" onclick="record_manager.data_config_set();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
+<div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1" data-bs-backdrop="true"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="data_form_label">Track Events</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-check-label font-weight-bold" for="init_filter_start_date">Start Date</label><input id="init_filter_start_date" type="text" class="date_field"/><span id="init_filter_date_to"></span><label class="form-check-label font-weight-bold" for="init_filter_end_date">End Date</label><input id="init_filter_end_date" type="text" class="date_field"/><label for="filter_id_checkbox">Filter by Cluster Color Event</label><input class="form-check-input" type="checkbox" value="" id="filter_id_checkbox"><div id="data_form"><div class="row"><input class="label" type="input" data="label"/><div class="col"><label for="start_dropdown">Start Event</label><div id="start_dropdown" class="start_dropdown"></div></div><div class="col"><label for="end_dropdown">End Event</label><div id="end_dropdown" class="end_dropdown"></div></div><div class="col"><label for="type_dropdown">Additional Visualization</label><select id="type_display_dropdown" data="type"><option value="cluster_color">Cluster Color</option><option value="cluster_outline">Cluster Outline</option><option value="plot">Plot</option><option value="None"></option></select></div><div class="col"><label for="cow_color">Cow Color</label><span class="cow_color"><input type="text" class="cow_color picker" value="" data="color"/></span></div><div class="col"><button type="button" class="btn btn-success duplicate" onclick="duplicate_row(this);fix_picker();"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path></svg></button><button type="button" class="btn btn-danger" onclick="delete_row(this);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/></svg></button></div></div></div></div><div class="modal-footer"><button id="data_form_save_but" onclick="process_data_forms();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
 </body>
 </html>
