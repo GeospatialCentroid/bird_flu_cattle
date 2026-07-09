@@ -64,3 +64,13 @@ Moving from left to right, the controls below the map do the following:
 A table is created when either the **Show Pen Data** link or **Show Movement History** link is clicked. 
 This table shows an expanded view of the data, where each event has been converted to a start and end date range.
 Clicking a row in the table changes the current date to the date of the row event, and selects/highlights the corresponding cow on the map.
+
+
+Credits and Acknowledgments
+Created by Kevin Worthington, Colorado State University, Geospatial Centroid
+
+With support and guidence from:
+
+Natalie Urie, Chloe Stenkamp-Strahm, and Jason Lombard, Colorado State University College of Veterinary Medicine and Biomedical Sciences.
+
+Enhancements supported by Google. (2026). Gemini (Pro version) [Large language model]. https://gemini.google.com
