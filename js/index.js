@@ -141,6 +141,22 @@ function setup_map(){
 
       marker_manager=new Marker_Manager({ map:map_manager.map})
     marker_manager.init()
+    
+    // add left and right arrow key date change
+    document.addEventListener('keydown', function(event) {
+        // Avoid triggering if the user is currently typing in an input field or search bar
+        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            return;
+        }
+
+        if (event.key === 'ArrowLeft') {
+            let btn = document.getElementById('date_advance_backward');
+            if (btn) btn.click();
+        } else if (event.key === 'ArrowRight') {
+            let btn = document.getElementById('date_advance_forward');
+            if (btn) btn.click();
+        }
+    });
 }
 function setup_records(_data){
    record_manager = new Record_Manager({
@@ -248,7 +264,6 @@ function setup_interface(_event_settings){
       }
       
       // 2. Zoom the map regardless of how the app was launched
-      console.log("Zoom the MAP!!!!!!");
       try {
           map_manager.map.fitBounds(layer_manager.poly.getBounds());
       } catch(e) {

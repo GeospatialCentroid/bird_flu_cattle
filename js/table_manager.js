@@ -309,12 +309,29 @@ class Table_Manager {
     $this.show_totals()
 
   }
+  show_table(){
+        // 1. Capture the exact center and zoom BEFORE the layout changes
+        let currentCenter = map_manager.map.getCenter();
+        let currentZoom = map_manager.map.getZoom();
+
+        // 2. Show or hide your table (adjust this to match your specific toggle logic)
+        let tableWrapper = document.getElementById('data_table_wrapper');
+        tableWrapper.style.display = 'block'; // Or tableWrapper.classList.remove('d-none');
+
+        // 3. Force Leaflet to recognize the new container dimensions
+        map_manager.map.invalidateSize();
+
+        // 4. Instantly lock the map back to the original center without animating
+        map_manager.map.setView(currentCenter, currentZoom, { animate: false });
+
+
+  }
   //
   generate_table(_features, show){
    this.csv=""
     this.id="id";//reset
-    this.elm_wrap.show()
 
+    this.show_table()
     if(_features?.features){
         //drop down a level if the features ar buried
         _features= _features.features

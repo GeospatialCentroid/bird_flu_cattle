@@ -31,6 +31,11 @@ function  init_event_prompt(data){
 }
 function show_model(){
       $('#model_data_form').modal('show');
+      
+      setTimeout(function() {
+        $('#data_form_save_but').focus();
+      }, 500);
+      
 }
 
 //--Dynamic event tracking

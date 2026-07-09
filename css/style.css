@@ -34,8 +34,7 @@ html,body{
    ========================================================== */
 /* Update the row layout (Header / Map+Sidebar / Table) */
 .dashboard {
-    display: grid;
-    height: 100vh;
+    
     padding: 12px;
     gap: 12px;
     box-sizing: border-box;
@@ -43,6 +42,11 @@ html,body{
     /* The magic is minmax(0, 1fr) instead of just 1fr */
     /* This forces the row to respect the 100vh limit */
     grid-template-rows: 64px minmax(0, 1fr) 25vh; 
+    
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Forces the dashboard to be exactly the height of the browser window */
+    overflow: hidden; /* Stops the whole page from scrolling */
 }
 
 
@@ -55,6 +59,7 @@ html,body{
     gap:28px;
     padding:14px 22px;
     flex-direction:row;
+    flex-shrink: 0;
 }
 .header-title{
     display:flex;
@@ -95,19 +100,25 @@ html,body{
    Main Layout
    ========================================================== */
 .dashboard-main {
-    display: grid;
+    
     grid-template-columns: 1fr 300px; 
     gap: 12px;
     
-    /* Add this to prevent the container from blowing out */
     min-height: 0; 
+
+    display: flex; /* Assuming your map and sidebar sit side-by-side */
+    flex: 1; /* This tells the middle to grow and absorb ALL empty vertical space! */
+    overflow: hidden; /* Keeps the map contained */
+    flex-wrap: nowrap;
 }
 .map-column{
     display:flex;
     flex-direction:column;
+    flex: 1; /* Takes up horizontal space inside dashboard-main */
 }
 .sidebar-column {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     grid-auto-rows: min-content;
     gap: 16px;
     
@@ -133,24 +144,25 @@ html,body{
 /* ==========================================================
    Map
    ========================================================== */
-.map-card{
-    flex:1;
-    padding:0;
-    overflow:hidden;
-    position:relative; /* 1. Make this the anchor for the wrapper */
+.map-card {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+    position: relative; 
+    min-height: 400px; 
 }
 
-#map_wrapper{
-    position:absolute; /* 2. Strip it from the document flow */
-    top:0;             /* 3. Pin it to all four corners of the card */
-    left:0;
-    right:0;
-    bottom:0;
+#map_wrapper {
+    position: absolute; 
+    top: 0;             
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
-#map{
-    width:100%;
-    height:100%;
+#map {
+    width: 100%;
+    height: 100%;
 }
 /* ==========================================================
    Metrics
@@ -301,6 +313,11 @@ html,body{
     overflow:hidden;
     padding:0;
     min-height:0;
+    display: none;
+    flex-shrink: 0; /* Prevents it from being squished too small */
+    /* Add a max-height so a huge table doesn't push the map off the screen */
+    max-height: 45vh; 
+    overflow-y: auto;
 }
 .table-toolbar{
     display:flex;
@@ -842,3 +859,38 @@ section.card .btn {
     z-index: 2; /* Forces the icon to appear on top of the input */
 }
 
+.modal-dialog {
+    max-width: 900px;
+}
+.ui-widget.ui-widget-content{
+    z-index: 999;
+}
+.popup_label{
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ==========================================================
+  Trace Table
+   ========================================================== */
+
+
+    #trace_results_table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    /* Set a max height for the table and enable scrolling */
+    .table-responsive {
+        max-height: 70vh; /* 70% of the viewport height */
+        overflow-y: auto; /* Enable vertical scrolling */
+        border: 1px solid #ddd; /* Optional: Add a border for better visibility */
+    }
+
+    /* Lock the header when scrolling */
+    #trace_results_table thead th {
+        position: sticky;
+        top: 0; /* Stick the header to the top */
+        background-color: #f8f9fa; /* Background color for the header */
+        z-index: 1; /* Ensure the header stays on top */
+    }

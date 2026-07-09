@@ -68,7 +68,7 @@
 </div>
 <div class="dashboard">
 <header class="dashboard-header card">
-<div class="header-title"><h2>Bird Flu Cattle</h2><span class="dashboard-subtitle">Interactive Animal Movement Dashboard</span></div>
+<div class="header-title"><h2>Cattle Contact Tracing</h2><span class="dashboard-subtitle"></span></div>
 <div class="header-item"><span class="header-label">Data File</span><span id="data_file"></span></div>
 <div class="header-item"><span class="header-label">Map File</span><span id="map_file"></span></div>
 <div class="header-actions"><button class="btn btn-light" onclick="show_model()" title="Settings"><i class="bi bi-gear-fill"></i></button><a id="git_but" class="btn btn-light" href="https://github.com/GeospatialCentroid/bird_flu_cattle" target="_blank" title="GitHub Repository"><i class="bi bi-github"></i></a></div>
@@ -76,21 +76,17 @@
 <div class="dashboard-main">
 <section class="map-column"><div class="card map-card"><div id="map_wrapper"><div id="map"></div></div></div></section>
 <aside class="sidebar-column">
-<section class="card metrics-card"><div class="metric-grid">
-  <div class="metric">
-    <div class="metric-label">Unique Cows</div><div id="total_items" class="metric-value hyper"></div></div><div class="metric">
-    <div class="metric-label">Duplicate Cows</div><div id="duplicate_items" class="metric-value hyper"></div></div></div>
-
-    <div id="warning" class="warning-box"></div></section>
-<section class="card"><div class="input-group"><input id="search" type="text" class="form-control" placeholder="Search by Cow ID"><button id="search_but" class="btn btn-primary"><i class="bi bi-search"></i></button></div></section>
 <section class="card"><h6>Current Date</h6>
-  
   
     <div class="date-input-wrapper">
               <input id="filter_current_date" class="date_field" type="text" placeholder="YYYY-MM-DD">
               <i class="bi bi-calendar-event"></i> </div>
-    <div class="btn-group mt-2"><button id="date_advance_backward" class="btn btn-outline-secondary" onclick="record_manager.move_to_date(-1)"><i class="bi bi-arrow-left"></i></button><button id="date_advance_forward" class="btn btn-outline-secondary" onclick="record_manager.move_to_date(1)"><i class="bi bi-arrow-right"></i></button></div>
+    <div class="btn-group mt-2">
+        <button id="date_advance_backward" class="btn btn-outline-secondary" title="Go 1 day back (<)" onclick="record_manager.move_to_date(-1)"><i class="bi bi-arrow-left"></i></button>
+        <button id="date_advance_forward" class="btn btn-outline-secondary" title="Go 1 day forward (>)"onclick="record_manager.move_to_date(1)"><i class="bi bi-arrow-right"></i></button></div>
   </section>
+  <section class="card"><h6>First Infection</h6><button id="date_first_infection" class="btn btn-outline-primary w-100"></button></section>
+
 
   <div id="filter_date">
 
@@ -137,12 +133,65 @@
     </section>
 
 </div>
-<section class="card"><h6>First Infection</h6><button id="date_first_infection" class="btn btn-outline-primary w-100"></button></section>
+
+<section class="card metrics-card"><div class="metric-grid">
+  <div class="metric">
+    <div class="metric-label">Unique Cows</div><div id="total_items" class="metric-value hyper"></div></div><div class="metric">
+    <div class="metric-label">Duplicate Cows</div><div id="duplicate_items" class="metric-value hyper"></div></div></div>
+
+    <div id="warning" class="warning-box"></div></section>
+<section class="card"><div class="input-group"><input id="search" type="text" class="form-control" placeholder="Search by Cow ID"><button id="search_but" class="btn btn-primary"><i class="bi bi-search"></i></button></div></section>
+
 </aside>
 </div>
-<section class="card table-card"><div class="table-toolbar"><div class="table-stats"><div id="data_table_total"><div><span class="total_results"></span></div><div><span class="total_showing"></span></div></div></div><div class="table-actions"><div id="data_table_select"></div><button class="btn btn-outline-secondary" onclick="table_manager.download()" title="Download current results"><i class="bi bi-cloud-arrow-down"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.download_all()" title="Download all records"><i class="bi bi-cloud-arrow-down-fill"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.close()" title="Close"><i class="bi bi-x"></i></button></div></div><div id="data_table" class="dashboard-table"></div></section>
+<section id="data_table_wrapper" class="card table-card"><div class="table-toolbar"><div class="table-stats"><div id="data_table_total"><div><span class="total_results"></span></div><div><span class="total_showing"></span></div></div></div><div class="table-actions"><div id="data_table_select"></div><button class="btn btn-outline-secondary" onclick="table_manager.download()" title="Download current results"><i class="bi bi-cloud-arrow-down"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.download_all()" title="Download all records"><i class="bi bi-cloud-arrow-down-fill"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.close()" title="Close"><i class="bi bi-x"></i></button></div></div><div id="data_table" class="dashboard-table"></div></section>
 </div>
 <div class="modal" tabindex="-1" role="dialog" id="model_data_config"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Data Config</h5></div><div class="modal-body"><p>Please specify which columns to use:</p><form><div id="required_variables" class="d-flex flex-column gap-2"></div></form></div><div class="modal-footer"><button id="data_config_save_but" onclick="record_manager.data_config_set();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
 <div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1" data-bs-backdrop="true"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="data_form_label">Track Events</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-check-label font-weight-bold" for="init_filter_start_date">Start Date</label><input id="init_filter_start_date" type="text" class="date_field"/><span id="init_filter_date_to"></span><label class="form-check-label font-weight-bold" for="init_filter_end_date">End Date</label><input id="init_filter_end_date" type="text" class="date_field"/><label for="filter_id_checkbox">Filter by Cluster Color Event</label><input class="form-check-input" type="checkbox" value="" id="filter_id_checkbox"><div id="data_form"><div class="row"><input class="label" type="input" data="label"/><div class="col"><label for="start_dropdown">Start Event</label><div id="start_dropdown" class="start_dropdown"></div></div><div class="col"><label for="end_dropdown">End Event</label><div id="end_dropdown" class="end_dropdown"></div></div><div class="col"><label for="type_dropdown">Additional Visualization</label><select id="type_display_dropdown" data="type"><option value="cluster_color">Cluster Color</option><option value="cluster_outline">Cluster Outline</option><option value="plot">Plot</option><option value="None"></option></select></div><div class="col"><label for="cow_color">Cow Color</label><span class="cow_color"><input type="text" class="cow_color picker" value="" data="color"/></span></div><div class="col"><button type="button" class="btn btn-success duplicate" onclick="duplicate_row(this);fix_picker();"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path></svg></button><button type="button" class="btn btn-danger" onclick="delete_row(this);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/></svg></button></div></div></div></div><div class="modal-footer"><button id="data_form_save_but" onclick="process_data_forms();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
+
+<!-- Contact Tracing Modal -->
+<div class="modal fade" id="tracingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Contact Tracing: <span id="trace_cow_id_display"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Controls -->
+        <!-- Inside your tracingModal -->
+<div class="d-flex align-items-end gap-3 mb-4">
+    <div>
+        <!-- Updated label and removed min="1" -->
+        <label class="form-label">Trace Window (Days: - past, + future)</label>
+        <input type="number" id="trace_duration" class="form-control" value="14">
+    </div>
+    <button class="btn btn-primary" onclick="runContactTrace()">Generate Report</button>
+</div>
+
+<!-- Results Table -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover" id="trace_results_table">
+        <thead>
+            <tr>
+                <th>Contact Cow ID</th>
+                <th>Pen Location</th>
+                <th>Contact Event</th> 
+                <th>Overlap Duration</th>
+                <th>Dates of Contact</th>
+            </tr>
+        </thead>
+        <tbody id="trace_results_body">
+            <tr><td colspan="5" class="text-center text-muted">Run trace to see results.</td></tr>
+        </tbody>
+        </table>
+    </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

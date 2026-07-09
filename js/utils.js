@@ -229,3 +229,231 @@ jQuery.fn.scrollTo = function(elem, speed) {
     return this;
 };
 
+// a user could set more than one cluster color 
+// (i.e the inportant event they want to track)
+function get_cluster_color_events() {
+    var event_names = [];
+    for (var i in event_settings) {
+        var e = event_settings[i];
+        if (e.type == 'cluster_color') {
+            event_names.push(e.start);
+        }
+    }
+    return event_names;
+}
+//Contact tracing
+
+// Global variable to remember which cow we are tracing
+let currentTraceCowId = null; 
+
+function triggerNetworkFromPopup(cowId, currentPen, days) {
+    let _date = $("#filter_current_date").datepicker().val();
+    
+    // Parse the days from the popup, fallback to -14 if the user left it blank
+    let daysToTrace = parseInt(days) || -14; 
+    
+    // Pass the user's requested days to your helper function
+    let contacts = getContactTraceData(cowId, _date, daysToTrace); 
+
+    // Close the popup and draw the map
+    map_manager.map.closePopup();
+    layer_manager.mapTransmissionNetwork(contacts, currentPen);
+}
+//
+
+// Expects arrays in [lat, lng] format
+function getBezierCurve(latlng1, latlng2, bendFactor = 0.3) {
+    // Check if the coordinate is an Object {lat, lng} or an Array [lat, lng]
+    let lat1 = (latlng1.lat !== undefined) ? latlng1.lat : latlng1[0];
+    let lng1 = (latlng1.lng !== undefined) ? latlng1.lng : latlng1[1];
+    
+    let lat2 = (latlng2.lat !== undefined) ? latlng2.lat : latlng2[0];
+    let lng2 = (latlng2.lng !== undefined) ? latlng2.lng : latlng2[1];
+
+    // If they are STILL undefined, log an error so you can see exactly which pen is missing data
+    if (lat1 === undefined || lat2 === undefined) {
+        console.error("Invalid coordinates passed to Bezier generator:", latlng1, latlng2);
+        return [];
+    }
+
+    // Find the midpoint
+    let midLat = (lat1 + lat2) / 2;
+    let midLng = (lng1 + lng2) / 2;
+
+    // Calculate perpendicular offset
+    let dLat = lat2 - lat1;
+    let dLng = lng2 - lng1;
+    
+    // Determine the control point that "pulls" the curve outward
+    let controlLat = midLat + (dLng * bendFactor);
+    let controlLng = midLng - (dLat * bendFactor);
+
+    // Generate 20 segments to make a smooth curve
+    let points = [];
+    for (let t = 0; t <= 1; t += 0.05) { 
+        let lat = Math.pow(1 - t, 2) * lat1 + 2 * (1 - t) * t * controlLat + Math.pow(t, 2) * lat2;
+        let lng = Math.pow(1 - t, 2) * lng1 + 2 * (1 - t) * t * controlLng + Math.pow(t, 2) * lng2;
+        points.push([lat, lng]);
+    }
+    
+    return points;
+}
+////
+
+function openTraceModal(cowId, days) {
+    currentTraceCowId = cowId;
+    document.getElementById('trace_cow_id_display').innerText = cowId;
+    
+    // Sync the value from the popup to the modal's input field
+    let daysToTrace = parseInt(days) || -14;
+    document.getElementById('trace_duration').value = daysToTrace;
+    
+    // Clear previous results
+    document.getElementById('trace_results_body').innerHTML = `<tr><td colspan="5" class="text-center text-muted">Loading trace...</td></tr>`;
+    
+    // Show the modal
+    var myModal = new bootstrap.Modal(document.getElementById('tracingModal'));
+    myModal.show();
+
+    // Automatically run the contact trace so the table is fully populated when the modal opens!
+    runContactTrace();
+}
+
+function runContactTrace() {
+    let _date = $("#filter_current_date").datepicker().val();
+    let daysToTrace = parseInt(document.getElementById('trace_duration').value);
+    
+    // Call the helper function!
+    let contacts = getContactTraceData(currentTraceCowId, _date, daysToTrace);
+    
+    // Send to table renderer
+    renderTraceTable(contacts);
+}
+
+///
+
+// This function strictly calculates contacts and returns the array
+function getContactTraceData(cowId, referenceDate, daysToTrace) {
+    var data = record_manager.json_data;
+    
+    let baseDate = moment(referenceDate);
+    let targetDate = moment(referenceDate).add(daysToTrace, 'days');
+    
+    let startDate = moment.min(baseDate, targetDate);
+    let endDate = moment.max(baseDate, targetDate);
+    
+    let contacts = [];
+    
+    // 1. Get all movements for the target cow in the time window
+    let targetCowMovements = data.filter(record => 
+        String(record["ID"]) === String(cowId) && 
+        record["START DATE"].isBefore(endDate) && 
+        record["END DATE"].isAfter(startDate)
+    );
+
+    targetCowMovements.forEach(targetMove => {
+        // FIX: Grab the pen the cow moved TO (or is currently in)
+        let activePen = targetMove["IN PEN"] || targetMove["FROM PEN"]; 
+
+        // 2. Find other cows that were in that SAME active pen
+        let potentialContacts = data.filter(record => 
+            String(record["ID"]) !== String(cowId) && 
+            (record["IN PEN"] === activePen || record["FROM PEN"] === activePen) 
+        );
+        
+        potentialContacts.forEach(contactMove => {
+            let overlapStart = moment.max(targetMove["START DATE"], contactMove["START DATE"]);
+            let overlapEnd = moment.min(targetMove["END DATE"], contactMove["END DATE"]);
+            
+            let traceOverlapStart = moment.max(overlapStart, startDate);
+            let traceOverlapEnd = moment.min(overlapEnd, endDate);
+            
+            if (traceOverlapStart.isBefore(traceOverlapEnd)) {
+                let durationDays = traceOverlapEnd.diff(traceOverlapStart, 'days');
+                
+                contacts.push({
+                    cow_id: contactMove["ID"],
+                    pen: activePen, // Use the active pen for the output table
+                    event: contactMove["EVENT"] || "Unknown",
+                    duration: durationDays === 0 ? 1 : durationDays, 
+                    dates: `${traceOverlapStart.format('YYYY-MM-DD')} to ${traceOverlapEnd.format('YYYY-MM-DD')}`
+                });
+            }
+        });
+    });
+    
+    return contacts;
+}
+
+///
+
+function renderTraceTable(contacts) {
+    let tbody = document.getElementById('trace_results_body');
+    let color_events = get_cluster_color_events();
+    console.log(color_events);
+    
+    if (contacts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No contacts found in this timeframe.</td></tr>`;
+        return;
+    }
+
+    // 1. Group the contacts by cow_id
+    let groupedContacts = {};
+    
+    contacts.forEach(c => {
+        // If we haven't seen this cow yet, create a container for it
+        if (!groupedContacts[c.cow_id]) {
+            groupedContacts[c.cow_id] = {
+                cow_id: c.cow_id,
+                total_duration: 0, // Keep a running total of all contact days
+                records: []        // Store all the individual contact events here
+            };
+        }
+        
+        // Add the current event to this cow's group
+        groupedContacts[c.cow_id].total_duration += c.duration;
+        groupedContacts[c.cow_id].records.push(c);
+    });
+
+    // 2. Convert the grouped object back into an array so we can sort it
+    let groupedArray = Object.values(groupedContacts);
+
+    // Sort the primary rows by highest total duration of contact
+    groupedArray.sort((a, b) => b.total_duration - a.total_duration);
+
+    // 3. Generate the HTML
+    let html = '';
+    
+    groupedArray.forEach(group => {
+        // Sort each cow's individual records chronologically
+        group.records.sort((a, b) => new Date(a.dates.split(' to ')[0]) - new Date(b.dates.split(' to ')[0]));
+
+        // Map over the records to create stacked lines separated by <br> tags
+        let pensHtml = group.records.map(r => r.pen).join('<br>');
+        
+        let eventsHtml = group.records.map(r => {
+            let badgeClass = color_events.includes(r.event) ? 'bg-danger' : 'bg-secondary';
+            return `<span class="badge ${badgeClass} mb-1">${r.event}</span>`;
+        }).join('<br>');
+        
+        let durationsHtml = group.records.map(r => `${r.duration} days`).join('<br>');
+        let datesHtml = group.records.map(r => r.dates).join('<br>');
+
+        // Create a single row for the cow, with the stacked data in the columns
+        // align-middle keeps everything vertically centered if rows get tall
+        html += `
+            <tr>
+                <td class="align-middle">
+                    <strong>${group.cow_id}</strong><br>
+                    <small class="text-muted text-nowrap">Total: ${group.total_duration} days</small>
+                </td>
+                <td class="align-middle">${pensHtml}</td>
+                <td class="align-middle">${eventsHtml}</td>
+                <td class="align-middle">${durationsHtml}</td>
+                <td class="align-middle text-nowrap">${datesHtml}</td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}

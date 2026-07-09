@@ -97,6 +97,7 @@ class Record_Manager {
         $this.json_data= $.csv.toObjects(data.replaceAll('\t', ''));
         // initialize this filtering system
         $("#model_data_config").show()
+        $('#data_config_save_but').focus();
         const keys = Object.keys(record_manager.json_data[0]).sort();
         // for each required field: populate a dropdown giving the user the option to select which column refers to what
         for (var i=0;i<required_variables.length;i++){
@@ -241,7 +242,7 @@ class Record_Manager {
         var filtered_data=[];
         var ids=[]
         var has_ids=false
-        // lets also filer the data by ids that do not have a Cluster Color event
+        // lets also filter the data by ids that do not have a Cluster Color event
          if ($('#filter_id_checkbox').is(':checked')){
             has_ids=true
             // Get the ids of all the clinical cows
@@ -537,37 +538,45 @@ class Record_Manager {
             }
         }
 
+        marker_manager.reset(); // remove all markers
+       
+        let global_end_date = moment($("#filter_end_date").val());
 
-       marker_manager.reset();// remove all markers
-            for(var i=0;i<this.json_data.length;i++){
-               var t = this.json_data[i]
+        for(var i = 0; i < this.json_data.length; i++) {
+            var t = this.json_data[i];
 
-                if(_date.isBetween(t["START DATE"], t["END DATE"]) || _date.isSame(t["START DATE"]) ) {//|| _date.isSame( t["END DATE"])
+            // 1. Is it the exact day the event started?
+            let isStart = _date.isSame(t["START DATE"], 'day');
+            
+            // 2. Is it strictly between the start and end? (Exclusive of edges)
+            let isBetween = _date.isAfter(t["START DATE"], 'day') && _date.isBefore(t["END DATE"], 'day');
+            
+            // 3. Is it the end date AND the absolute last day of the timeline?
+            let isGlobalLastDay = _date.isSame(t["END DATE"], 'day') && _date.isSame(global_end_date, 'day');
 
-                    if($.inArray(t["ID"], this.id_track['ids'])==-1){
-                        this.id_track['ids'].push(t["ID"])
+            // FIX: Match on any of the three conditions above
+            if(isStart || isBetween || isGlobalLastDay) {
 
-                    }else{
-                       // console.log(t["ID"], "is on the map more than once")
-                        this.id_track['duplicate_ids'].push(t["ID"])
+                if($.inArray(t["ID"], this.id_track['ids']) == -1) {
+                    this.id_track['ids'].push(t["ID"]);
+                } else {
+                    this.id_track['duplicate_ids'].push(t["ID"]);
+                }
+
+                // get the pen id
+                var location = layer_manager.get_poly_location(t["IN PEN"]);
+                
+                if(location) {
+                    var marker = marker_manager.create_marker(t, location);
+                    var status = marker.options.icon.options.status;
+                    
+                    if(status != 'default') {
+                        this.id_track[status].push(t["ID"]);
                     }
-
-                    // show the cows on the map
-                    //console.log(t["IN PEN"])
-                    // get the pen id
-                    var location = layer_manager.get_poly_location(t["IN PEN"])
-                    if(location){
-
-                        var marker = marker_manager.create_marker(t,location);
-                        var status = marker.options.icon.options.status
-                        if(status!='default'){
-                            this.id_track[status].push(t["ID"])//Was (marker)
-                        }
-                    }else{
-                        //console.log(t["IN PEN"], "not found")
-                        this.create_pen_warning(t["IN PEN"])
-                    }
-               }
+                } else {
+                    this.create_pen_warning(t["IN PEN"]);
+                }
+            }
         }
         $("#total_items").html( this.id_track["ids"].length)
         // add hyper link to data access

@@ -103,25 +103,45 @@ class Marker_Manager {
     }
     create_marker(obj,location){
         if(location){
-            var popup_content = "ID: "+obj["ID"]+"<br/>"
+            var popup_content = "Cow ID: "+obj["ID"]+"<br/>"
             popup_content += "In Pen: "+obj["IN PEN"]+"<br/>"
 
-
-            popup_content+=$("#filter_current_date").val()
-            // dyanmically populate popup content based on config
-            popup_content+="<br/>"+"<a href='javascript:void(0);' onclick='record_manager.show_data("+obj["ID"]+",\"ID\")'>Show Movement History</a>"
-
-            // We're looking for any matching records from the event_data
+            // Show any matching records from the event_data
             for(var i in event_settings){
                 var e = event_settings[i]
                 if(e["type"]!='plot'){
                     var records = marker_manager.get_event_records(obj["ID"],event_data[e.label])
                     for(var i=0;i<records.length;i++){
-                       popup_content+="<br/>"+e.label+" From: "+moment.unix(records[i]["start_date"]).format('YYYY-MM-DD')+" to "+ moment.unix (records[i]["end_date"]).format('YYYY-MM-DD')
+                       popup_content+="<br/><span class='popup_label'>"+e.label+" From: </span> "+moment.unix(records[i]["start_date"]).format('YYYY-MM-DD')+" to "+ moment.unix (records[i]["end_date"]).format('YYYY-MM-DD')
                     }
                 }
             }
 
+            popup_content+=`<hr class="my-2">`
+            popup_content+="<br/><span class='popup_label'>Current Date: "+$("#filter_current_date").val()+"</span>"
+            // dynamically populate popup content based on config
+            popup_content+=`<br/><button class="btn btn-sm btn-info text-white  w-100 mb-1" onclick="record_manager.show_data('${obj["ID"]}','ID');layer_manager.mapCowTrajectory('${obj["ID"]}')">
+            <i class="bi bi-geo-alt"></i> Movement History</button>`; 
+            
+
+           popup_content+=`<hr class="my-2">
+
+            <div class="input-group input-group-sm mb-2">
+                <span class="input-group-text bg-secondary text-white border-secondary">Trace/Network Map Days</span>
+                <input type="number" id="popup_days" class="form-control border-secondary" value="14">
+            </div>
+
+            <!-- UPDATED: Pass the input value into the functions -->
+            <button class="btn btn-sm btn-danger w-100 mb-1" onclick="openTraceModal('${obj["ID"]}', document.getElementById('popup_days').value)">
+                <i class="bi bi-activity"></i> Trace Contacts
+            </button>
+            <button class="btn btn-sm btn-warning w-100 mb-1" onclick="triggerNetworkFromPopup('${obj["ID"]}', '${obj["IN PEN"]}', document.getElementById('popup_days').value)">
+                <i class="bi bi-share"></i> Map Network
+            </button>`
+
+ 
+            
+          
 
             var marker=L.marker(location, {icon: this.get_marker_icon(obj["ID"],marker_manager.check_status(obj["ID"], moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()))})
             this.items.push(marker)
@@ -262,4 +282,38 @@ class Marker_Manager {
             Math.round(color1[2] * w1 + color2[2] * w2)];
         return rgb;
     }
+    ///
+    getArrowMarker(curvePoints, color) {
+    // Grab the points exactly in the middle of our 20-segment curve
+    let p1 = curvePoints[10]; 
+    let p2 = curvePoints[11];
+    
+    // Calculate the difference in position
+    let dy = p2[0] - p1[0]; // Latitude
+    let dx = p2[1] - p1[1]; // Longitude
+    
+    // Calculate the angle using standard math
+    // We use -dy because a computer screen's Y-axis goes down, but map Latitude goes up!
+    let angle = Math.atan2(-dy, dx) * (180 / Math.PI);
+    
+    // Create a custom HTML icon with the Unicode arrow rotated to match our line
+    let arrowIcon = L.divIcon({
+        className: 'custom-arrow-icon',
+        html: `<div style="
+                transform: rotate(${angle}deg); 
+                color: ${color}; 
+                font-size: 18px; 
+                line-height: 20px; 
+                text-align: center; 
+                /* Adds a white outline so it stands out over map tiles */
+                text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">
+                ➤
+              </div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10] // Centers the arrow exactly over the line
+    });
+    
+    // Return the marker. 'interactive: false' ensures it doesn't block the popup on the line beneath it
+    return L.marker(p1, { icon: arrowIcon, interactive: false }); 
+}
 }

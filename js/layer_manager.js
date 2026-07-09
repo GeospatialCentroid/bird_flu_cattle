@@ -16,6 +16,9 @@ class Layer_Manager {
         this[p]=properties[p]
     }
     this.poly;
+    //create a layer for showing the disease network lines 
+    this.networkLayer = L.layerGroup().addTo(map_manager.map);
+
   }
   create_geojson(_data){
         // create lookup chart too
@@ -103,6 +106,105 @@ class Layer_Manager {
        return layer_manager.pen_center[String(_id)]
 
     }
+//layer_manager.get_poly_location(contact.pen)
+
+ mapTransmissionNetwork(contacts, targetCowPenId) {
+    this.networkLayer.clearLayers();
+    
+    let targetPenCoords = layer_manager.get_poly_location(targetCowPenId); 
+    
+    contacts.forEach(contact => {
+        let contactPenCoords = layer_manager.get_poly_location(contact.pen);
+        
+        if (!contactPenCoords || isNaN(contactPenCoords.lat) || !targetPenCoords || contact.pen === targetCowPenId) return;
+        // Calculate thickness and color
+        let lineWeight = Math.min(contact.duration + 1, 1); 
+        let lineColor = (contact.event === 'FLU') ? '#dc3545' : '#ffc107'; // Red for flu, yellow for non-flu
+        
+        // Use our math function to get the curved coordinates
+        // We use Math.random() slightly on the bend factor so multiple lines don't overlap perfectly!
+        let randomBend = 0.2 + (Math.random() * 0.2); 
+        let curvePoints = getBezierCurve(targetPenCoords, contactPenCoords, randomBend);
+
+        // Draw the curved line
+        var vectorLine = L.polyline(curvePoints, {
+            color: lineColor,
+            weight: lineWeight,
+            opacity: 0.65,
+            dashArray: (contact.event === 'FLU') ? null : '8, 8', // Dashed if they didn't catch the flu
+            lineCap: 'round'
+        }).addTo(this.networkLayer);
+
+        vectorLine.bindPopup(`
+            <b>Transmission Vector</b><br>
+            From Pen: ${targetCowPenId} to Pen: ${contact.pen}<br>
+            Exposure Duration: ${contact.duration} days<br>
+            Resulting Event: ${contact.event}
+        `);
+    });
+}
+ mapCowTrajectory(cowId) {
+    var data = record_manager.json_data;
+    
+    // 1. Get ALL records for this specific cow
+    let history = data.filter(record => String(record["ID"]) === String(cowId));
+    
+    if (history.length === 0) return;
+
+    // 2. Sort the records chronologically from oldest to newest
+    history.sort((a, b) => a["START DATE"].valueOf() - b["START DATE"].valueOf());
+    
+    // 3. Clear previous network drawings
+    // (Assuming networkLayer is a global L.layerGroup() as defined in your previous step)
+    layer_manager.networkLayer.clearLayers(); 
+    // map_manager.map.closePopup();
+
+    let stepCounter = 1;
+
+    // 4. Loop through the history to draw the movement vectors
+    for (let i = 0; i < history.length - 1; i++) {
+        let currentRecord = history[i];
+        let nextRecord = history[i + 1];
+        console.log(currentRecord)
+        let currentPen = currentRecord["IN PEN"];
+        let nextPen = nextRecord["IN PEN"]; 
+        
+        // Only draw a line if the cow actually physically moved to a different pen
+        if (currentPen !== nextPen) {
+            let startCoords = layer_manager.get_poly_location(currentPen);
+            let endCoords = layer_manager.get_poly_location(nextPen);
+            console.log(currentPen,startCoords)
+            console.log(nextPen,endCoords)
+            if (!startCoords || !endCoords) continue;
+            
+            // REUSE CODE: Generate the curve
+            // We use a consistent bend factor here (e.g., 0.2) so the timeline looks clean
+            let curvePoints = getBezierCurve(startCoords, endCoords, 0.2);
+            let lineColor = '#0dcaf0'; // Saved as a variable so we can reuse it
+            // Draw the movement path
+            var movementLine = L.polyline(curvePoints, {
+                color: lineColor, // Bootstrap Info Blue to match the button
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '10, 10', // Dashed line to imply travel/motion
+                lineCap: 'round'
+            }).addTo(layer_manager.networkLayer); // Use your layer manager
+
+            marker_manager.getArrowMarker(curvePoints, lineColor).addTo(layer_manager.networkLayer);
+            // Add a popup to the line itself so you can click the line to see when it happened
+            movementLine.bindPopup(`
+                <div class="text-center">
+                    <span class="badge bg-info text-dark mb-1">Movement Step #${stepCounter}</span>
+                </div>
+                <b>Path:</b> Pen ${currentPen} &rarr; Pen ${nextPen}<br>
+                <b>Date Arrived:</b> ${nextRecord["START DATE"].format('YYYY-MM-DD')}<br>
+                <b>Recorded Event:</b> ${nextRecord["EVENT"] || "Move"}
+            `);
+
+            stepCounter++;
+        }
+    }
+}
 //zoom_marker(_id){
 //    var coords = this.get_feature(_id)
 //
