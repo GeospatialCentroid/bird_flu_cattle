@@ -66,7 +66,7 @@ This table shows an expanded view of the data, where each event has been convert
 Clicking a row in the table changes the current date to the date of the row event, and selects/highlights the corresponding cow on the map.
 
 
-Credits and Acknowledgments
+## Credits and Acknowledgments
 Created by Kevin Worthington, Colorado State University, Geospatial Centroid
 
 With support and guidence from:

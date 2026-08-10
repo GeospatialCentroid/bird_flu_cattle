@@ -29,45 +29,54 @@ var browser_control=false; //flag for auto selecting to prevent repeat cals
 var required_variables = ["ID","TO PEN","CURRENT PEN","EVENT","DATE"]
 
 $( function() {
+    
+    // 1. Immediately force the loading overlay to show and reset the progress bar
+    $(".overlay").css({ display: "flex", opacity: 1 }).show();
+    $("#loader").css("width", "5%"); // Start with a small sliver of progress
 
-    load_data("app.csv","csv",initialize_interface)
+    // 2. Defer the heavy data loading to allow the browser to paint the overlay first
+    setTimeout(function() {
+        load_data("app.csv", "csv", initialize_interface);
+    }, 50);
 
-    $(document).on('change','#data_input',function(){on_file_change(event);})
+    // Bind other UI events
+    $(document).on('change', '#data_input', function(){ on_file_change(event); });
 
     $("#map_wrapper").resizable({
-    handles: 's',
-    stop: function(event, ui) {
-        $(this).css("width", '');
-   }
-});
+        handles: 's',
+        stop: function(event, ui) {
+            $(this).css("width", '');
+        }
+    });
 });
 
-load_data = function(url,type,call_back){
-    // type csv = should be 'text' and then converted
-    // geojson = should be 'json' and then converted
-
-     if(type=='geojson'){
-        type='json'
-    }else if (type=='json'){
-        type='json'
-    }else{
-        type='text'
+load_data = function(url, type, call_back) {
+    if (type == 'geojson') {
+        type = 'json';
+    } else if (type == 'json') {
+        type = 'json';
+    } else {
+        type = 'text';
     }
-    //todo be sure to convert appropriately once loaded
+
     $.ajax({
         url: url,
         dataType: type,
         success: function(_data) {
-            call_back(_data)
+            call_back(_data);
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-        console.log(xhr.status);
-         console.log(thrownError);
-         console.log("URL",url)
-         $("#file_upload_controls").show()
-      }
-     });
-
+        error: function(xhr, ajaxOptions, thrownError) {
+            console.log("Error loading URL:", url);
+            console.log(xhr.status, thrownError);
+            
+            // FIX: Stop the loading animation and hide the overlay on 404
+            $("#loader").css("width", "0%");
+            $(".overlay").hide(); 
+            
+            // Show the upload prompt
+            $("#file_upload_controls").show();
+        }
+    });
 }
 
 function initialize_interface(_data,wait){

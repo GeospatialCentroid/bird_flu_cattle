@@ -36,58 +36,79 @@ class Record_Manager {
     this.date_format='M/D/YYYY'
    }
   init() {
-    var $this=this
-     //simulate progress - load up to 90%
-      var current_progress = 0;
-      this.progress_interval = setInterval(function() {
-          current_progress += 5;
-          $("#loader").css("width", current_progress + "%")
-          if (current_progress >= 90)
-              clearInterval($this.progress_interval);
+    var $this = this;
+    
+    // Remove the simulated progress block from here. 
+    // We will handle progress entirely inside load_csv now.
 
-      }, 100);
-    //
-    $("#data_file").html(this.csv)
-    this.load_csv(this.csv,this.parse_data)
-    //
-//    $("#search").focus();
+    $("#data_file").html(this.csv);
+    this.load_csv(this.csv, this.parse_data);
+
     $("#search_clear").click(function(){
-        $("#search").val("")
-    })
-    ///--------
-    $('input[type=radio][name=search_type]').change(function() {
-        $this.mode=this.value
+        $("#search").val("");
     });
 
-     $("#search_but").click(function(){
+    $('input[type=radio][name=search_type]').change(function() {
+        $this.mode = this.value;
+    });
 
-//            $.get($this.place_url, { q: $("#search").val() }, function(data) {
-//                try{
-//                    $this.show_place_bounds(data[0].boundingbox)
-//                    $("#search").val(data[0].display_name)
-//                }catch(e){
-//
-//                }
-        console.log("Select this option",$("#search").val())
-        marker_manager.select_marker_by_id($("#search").val())
-
-
-    })
-
-    //
-
+    $("#search_but").click(function(){
+        console.log("Select this option", $("#search").val());
+        marker_manager.select_marker_by_id($("#search").val());
+    });
   }
-   load_csv(file_name,func){
-        var $this=this
-        $.ajax({
-            type: "GET",
-            url: file_name,
-            dataType: "text",
-            success: function(data) {
-                func(data,$this);
-            }
-         });
+  load_csv(file_name, func) {
+    var $this = this;
+
+    // FIX FOR UPLOADS: If the user uploaded a file, file_name might actually 
+    // be the raw CSV string or a Data URI. If it's huge or contains newlines, 
+    // it's not a URL. Skip AJAX and parse it immediately!
+    if (file_name.length > 500 || file_name.indexOf('\n') > -1) {
+        $("#loader").css("width", "95%");
+        setTimeout(function() {
+            func(file_name, $this);
+        }, 50);
+        return; 
     }
+
+    // Show overlay for network requests
+    $(".overlay").css({ display: "flex", opacity: 1 }).show();
+    $("#loader").css("width", "5%");
+
+    $.ajax({
+        type: "GET",
+        url: file_name,
+        dataType: "text",
+        xhr: function() {
+            var xhr = new window.XMLHttpRequest();
+            xhr.addEventListener("progress", function(evt) {
+                if (evt.lengthComputable) {
+                    var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                    $("#loader").css("width", Math.min(percentComplete, 95) + "%");
+                } else {
+                    var currentW = parseFloat($("#loader")[0].style.width) || 5;
+                    if (currentW < 90) {
+                        $("#loader").css("width", (currentW + 2) + "%");
+                    }
+                }
+            }, false);
+            return xhr;
+        },
+        success: function(data) {
+            $("#loader").css("width", "95%");
+            setTimeout(function() {
+                func(data, $this);
+            }, 50);
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            // FIX FOR 404s: Hide overlay and stop progress if data file is missing
+            console.warn("Failed to load data file:", file_name);
+            $("#loader").css("width", "0%");
+            $(".overlay").hide();
+            $("#file_upload_controls").show();
+        }
+    });
+}
     parse_data(data,$this){
      console.log("parse_data")
      if (!$this.json_data){
@@ -123,62 +144,66 @@ class Record_Manager {
             }
         }
     }
-    data_config_set(){
-        $('body').addClass('waiting-cursor');
-        // called from interface
-        //update the data to conform with the expected columns
-          // Precompute the variable-to-oldKey map once
+   data_config_set() {
+    const $btn = $('#data_config_save_but');
+    
+    // 1. Disable button and attach the animated dots HTML
+    // Note: This requires $btn to be a <button> tag, not an <input> tag!
+    $btn.prop('disabled', true).html('Processing<span class="dots-animation"></span>');
+    $('body').addClass('waiting-cursor');
+
+    // 2. Give the browser 100ms to paint the new button state
+    setTimeout(() => {
+        
+        // --- Heavy CSV processing logic ---
         const keyMap = {};
         for (let j = 0; j < required_variables.length; j++) {
-          const rv = required_variables[j];
-          const oldKey = document.getElementById(rv.replaceAll(" ", "_"))?.value;
-          if (oldKey && oldKey !== rv) {
-            keyMap[rv] = oldKey;
-          }
+            const rv = required_variables[j];
+            const oldKey = document.getElementById(rv.replaceAll(" ", "_"))?.value;
+            if (oldKey && oldKey !== rv) {
+                keyMap[rv] = oldKey;
+            }
         }
 
-        // Now update json_data efficiently
         const data = this.json_data;
         for (let i = 0; i < data.length; i++) {
-          const obj = data[i];
-          for (const [newKey, oldKey] of Object.entries(keyMap)) {
-            if (oldKey in obj) {
-              obj[newKey] = obj[oldKey];
-              delete obj[oldKey];
+            const obj = data[i];
+            for (const [newKey, oldKey] of Object.entries(keyMap)) {
+                if (oldKey in obj) {
+                    obj[newKey] = obj[oldKey];
+                    delete obj[oldKey];
+                }
             }
-          }
         }
 
-
-        //artificially populate the CURRENT PEN value - we want to know where the cow moved from
-        if($("#CURRENT_PEN").val()==0){
-            console.log("Artificially populate the CURRENT PEN")
-              const data = this.json_data;
-                const lastPenById = {}; // cache most recent "TO PEN" for each ID
-
-                for (let i = 0; i < data.length; i++) {
-                  const record = data[i];
-                  const id = record["ID"];
-
-                  // if we’ve seen this ID before, set CURRENT PEN
-                  if (lastPenById[id] !== undefined) {
+        if ($("#CURRENT_PEN").val() == 0) {
+            const lastPenById = {};
+            for (let i = 0; i < data.length; i++) {
+                const record = data[i];
+                const id = record["ID"];
+                if (lastPenById[id] !== undefined) {
                     record["CURRENT PEN"] = lastPenById[id];
-                  }
-
-                  // update the last known TO PEN for this ID
-                  lastPenById[id] = record["TO PEN"];
                 }
-          }
-        $("#model_data_config").hide()
+                lastPenById[id] = record["TO PEN"];
+            }
+        }
+        // --- End Heavy Processing ---
+
+        // 3. Reset UI state & proceed
+        $("#model_data_config").hide();
+        $btn.prop('disabled', false).text('Save'); // Resets text, removing the span
         $('body').removeClass('waiting-cursor');
-        record_manager.process_data(record_manager.json_data,record_manager);
 
-    }
+        // Pass control to process_data
+        record_manager.process_data(record_manager.json_data, record_manager);
 
-     process_data(data,$this){
-        console.log("process_data!!!")
+    }, 100); // Increased to 100ms
+}
+
+     process_data(data, $this){
+        console.log("process_data!!!");
         // create a copy of the original data
-        $this.all_data = JSON.parse(JSON.stringify(data))
+        $this.all_data = JSON.parse(JSON.stringify(data));
 
         // index sort
         if($this.json_data[0]?.["INDEX"]){
@@ -187,40 +212,37 @@ class Record_Manager {
                 if (a.ID > b.ID) return -1;
                 return 0;
             });
-
         }
-        ///---
+        
         // now that we have the records we need to create a filter menu
-        $this.generate_filters($this.json_data)
-        $this.add_filter_watcher()
-        $this.ids_added=true;//to prevent future ids
+        $this.generate_filters($this.json_data);
+        $this.add_filter_watcher();
+        $this.ids_added = true; //to prevent future ids
+        
         if($this.params){
             //populate the filters if set
-            browser_control=true
-//            $this.set_filters()
-//            $this.filter()
-            browser_control=false
-        }else{
-
-//             $this.filter()
+            browser_control = true;
+            browser_control = false;
         }
-        $this.populate_search($this.json_data,true);
+        
+        $this.populate_search($this.json_data, true);
 
         //-------------
-        //hide loader
-        clearInterval($this.progress_interval)
-        $("#loader").css("width", 100 + "%")
-        setTimeout( function() {
-
+        // Remove clearInterval($this.progress_interval) since it no longer exists
+        // Force to 100% in case it finished too fast or length was not computable
+        $("#loader").css("width", "100%");
+        
+        setTimeout(function() {
             $(".overlay").fadeOut("slow", function () {
-                $(this).css({display:"none",'background-color':"none"});
-                 $(".container").show();
-                  map_manager.map.invalidateSize();
+                $(this).css({display:"none", 'background-color':"none"});
+                $(this).css({display:""});
+                 $(".overlay").hide();
+                $(".container").show();
+                map_manager.map.invalidateSize();
             });
-        },300);
+        }, 300);
 
-        load_data('settings_config.json','json',init_event_prompt)
-
+        load_data('settings_config.json', 'json', init_event_prompt);
     }
     get_date_list($this,data){
         var date_list=[]

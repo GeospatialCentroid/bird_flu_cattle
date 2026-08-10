@@ -59,7 +59,7 @@
 
 
 <body>
-<div class="overlay">
+<div class="overlay" >
 <div class="progress">
 <div id="loader" class="progress-bar progress-bar-success progress-bar-striped active bg-info" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%;"><span id="current-progress"></span></div>
 </div>
@@ -147,7 +147,7 @@
 <section id="data_table_wrapper" class="card table-card"><div class="table-toolbar"><div class="table-stats"><div id="data_table_total"><div><span class="total_results"></span></div><div><span class="total_showing"></span></div></div></div><div class="table-actions"><div id="data_table_select"></div><button class="btn btn-outline-secondary" onclick="table_manager.download()" title="Download current results"><i class="bi bi-cloud-arrow-down"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.download_all()" title="Download all records"><i class="bi bi-cloud-arrow-down-fill"></i></button>
     <button class="btn btn-outline-secondary" onclick="table_manager.toggle_table()" title="Close"><i class="bi bi-x"></i></button></div></div><div id="data_table" class="dashboard-table"></div></section>
 </div>
-<div class="modal" tabindex="-1" role="dialog" id="model_data_config"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Data Config</h5></div><div class="modal-body"><p>Please specify which columns to use:</p><form><div id="required_variables" class="d-flex flex-column gap-2"></div></form></div><div class="modal-footer"><button id="data_config_save_but" onclick="record_manager.data_config_set();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
+<div class="modal" tabindex="-1" role="dialog" id="model_data_config" style="z-index:99999999"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Data Config</h5></div><div class="modal-body"><p>Please specify which columns to use:</p><form><div id="required_variables" class="d-flex flex-column gap-2"></div></form></div><div class="modal-footer"><button id="data_config_save_but" onclick="record_manager.data_config_set();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
 <div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1" data-bs-backdrop="true"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="data_form_label">Track Events</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-check-label font-weight-bold" for="init_filter_start_date">Start Date</label><input id="init_filter_start_date" type="text" class="date_field"/><span id="init_filter_date_to"></span><label class="form-check-label font-weight-bold" for="init_filter_end_date">End Date</label><input id="init_filter_end_date" type="text" class="date_field"/><label for="filter_id_checkbox">Filter by Cluster Color Event</label><input class="form-check-input" type="checkbox" value="" id="filter_id_checkbox">
     <div id="data_form"><div class="row">
         <input class="label" type="input" data="label"/>

@@ -399,12 +399,13 @@ html,body{
 .overlay{
     position:fixed;
     inset:0;
-    background:rgba(255,255,255,.90);
-    display:flex;
+    display: flex !important; /* Force it to show immediately */
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.9); /* Or whatever your background is */
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    z-index:1000;
+    z-index:10000;
 }
 .overlay .progress{
     width:420px;
@@ -894,3 +895,20 @@ section.card .btn {
         background-color: #f8f9fa; /* Background color for the header */
         z-index: 1; /* Ensure the header stays on top */
     }
+
+ /* Container for the animated dots */
+.dots-animation::after {
+  content: '...';
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+/* Keyframe to expand the visible width from 0 to 3 dots */
+@keyframes dots {
+  to {
+    width: 1.25em; 
+  }
+}
