@@ -132,7 +132,7 @@ class Marker_Manager {
             </div>
 
             <!-- UPDATED: Pass the input value into the functions -->
-            <button class="btn btn-sm btn-danger w-100 mb-1" onclick="openTraceModal('${obj["ID"]}', document.getElementById('popup_days').value)">
+            <button class="btn btn-sm btn-danger w-100 mb-1" onclick="contactTracer.openTraceModal('${obj["ID"]}', document.getElementById('popup_days').value)">
                 <i class="bi bi-activity"></i> Trace Contacts
             </button>
             <button class="btn btn-sm btn-warning w-100 mb-1" onclick="triggerNetworkFromPopup('${obj["ID"]}', '${obj["IN PEN"]}', document.getElementById('popup_days').value)">

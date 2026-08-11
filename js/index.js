@@ -12,6 +12,7 @@ var usp={};// the url params object to be populated
 
 var map_manager;
 var layer_manager;
+var contactTracer;
 
 var event_settings=false; // the dynamic details either loaded or configured while the app is running
 var event_data={}
@@ -93,6 +94,10 @@ function initialize_interface(_data,wait){
 
         $("#filter_current_date").trigger('change');
     });
+    // Initialize the class globally so your HTML can access it
+    contactTracer = new ContactTraceManager();
+    // setup the date controls in the contract trace model
+    contactTracer.setupTraceDateControls();
 
 }
 
