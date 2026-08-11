@@ -14,6 +14,8 @@ var map_manager;
 var layer_manager;
 var contactTracer;
 
+var eventManager;
+
 var event_settings=false; // the dynamic details either loaded or configured while the app is running
 var event_data={}
 
@@ -75,6 +77,7 @@ function initialize_interface(_data,wait){
 
   config= $.csv.toObjects(_data.replaceAll('\t', ''))
   setup_params()
+  eventManager = new EventManager();
 
  table_manager = new Table_Manager({
     elm_wrap:"data_table_wrapper",
@@ -243,11 +246,12 @@ function setup_interface(_event_settings){
             // set event label
             event_data[obj.label]=[]
             // create buckets with all the config specified events to be tracked
-            if(obj.end){
-               obj.end= obj.end.trim()
-            }
-            if(obj.start!=null){
-                record_manager.populate_days(event_data[obj.label],obj.start.trim(),obj.end,end_date)
+           // Normalize obj.start and obj.end into arrays (or empty arrays if null/undefined)
+            let startEvents = Array.isArray(obj.start) ? obj.start : (obj.start ? [obj.start.trim()] : []);
+            let endEvents = Array.isArray(obj.end) ? obj.end : (obj.end ? [obj.end.trim()] : []);
+
+            if (startEvents.length > 0) {
+                record_manager.populate_days(event_data[obj.label], startEvents, endEvents, end_date);
             }
             console_log("event_data",event_data)
 

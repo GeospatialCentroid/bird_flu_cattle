@@ -219,7 +219,7 @@ class Record_Manager {
             });
         },300);
 
-        load_data('settings_config.json','json',init_event_prompt)
+        load_data('settings_config.json','json',eventManager.init_event_prompt)
 
     }
     get_date_list($this,data){
@@ -455,37 +455,45 @@ class Record_Manager {
        }
     }
 
-    populate_days(_array,_event_start,_event_end,_end_date){
+   populate_days(_array, _event_start, _event_end, _end_date) {
+        // Ensure _event_start and _event_end are arrays for uniform checking
+        let startList = Array.isArray(_event_start) ? _event_start : [_event_start];
+        let endList = Array.isArray(_event_end) ? _event_end : [_event_end];
 
-        // called with event_data["sick"],"FLU","WELL",end_date)
-        // create a sub set of the data
-        //any record that has an EVENT labeled {_event_start} should have a record
-       //console.log("populate_days", _end_date,_array)
-        for(var i=0;i<this.json_data.length;i++){
-          var t = this.json_data[i];
+        for (var i = 0; i < this.json_data.length; i++) {
+            var t = this.json_data[i];
+            var eventName = t["EVENT"] ? t["EVENT"].trim() : "";
 
-          var end_date = false
-          if(t["EVENT"].trim()==_event_start){
+            var end_date = false;
+            
+            // Check if the current record's event matches any in our start array
+            if (startList.includes(eventName)) {
 
-                // find the end date which should be ahead
-                if(_event_end && _event_end!=""){
-                    for(var j=i+1;j<this.json_data.length;j++){
-                         var u = this.json_data[j]
-                         // make sure the next event is later than the first and matches the desired end event name
+                // Find the end date which should be ahead, matching any event in our end array
+                if (endList.length > 0 && !endList.includes("None")) {
+                    for (var j = i + 1; j < this.json_data.length; j++) {
+                        var u = this.json_data[j];
+                        var nextEventName = u["EVENT"] ? u["EVENT"].trim() : "";
 
-                         if(u["ID"]==t["ID"] && u["EVENT"].trim()==_event_end && moment(t["START DATE"],this.date_format).unix() < moment(u["START DATE"],this.date_format).unix()){
-//                           console.log("Closing t",t, "with u",u)
-                            end_date=moment(u["START DATE"],this.date_format).unix()
+                        // Make sure ID matches, event is in our allowed end list, and time is later
+                        if (u["ID"] === t["ID"] && endList.includes(nextEventName) && moment(t["START DATE"], this.date_format).unix() < moment(u["START DATE"], this.date_format).unix()) {
+                            end_date = moment(u["START DATE"], this.date_format).unix();
                             break;
-                         }
+                        }
                     }
                 }
-                if(!end_date){
-                    end_date=_end_date.unix()
+                
+                if (!end_date) {
+                    end_date = _end_date.unix();
                 }
-                _array.push({"id":t["ID"], "start_date": moment(t["START DATE"],this.date_format).unix(), "end_date": end_date,"from_pen": t["FROM PEN"]})
+                
+                _array.push({
+                    "id": t["ID"], 
+                    "start_date": moment(t["START DATE"], this.date_format).unix(), 
+                    "end_date": end_date,
+                    "from_pen": t["FROM PEN"]
+                });
             }
-
         }
     }
     get_first_infection_date(){

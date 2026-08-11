@@ -53,7 +53,7 @@
       <script src="js/table_manager.js"></script>
       <script src="js/contact_trace_manager.js"></script>
      <script src="js/utils.js"></script>
-    <script src="js/settings_config.js"></script>
+    <script src="js/event_manager.js"></script>
     <link rel="stylesheet" href="css/style.css" />
 
     <script src="https://d3js.org/d3.v6.js"></script>
@@ -72,7 +72,7 @@
 <div class="header-title"><h2>Cattle Contact Tracing</h2><span class="dashboard-subtitle"></span></div>
 <div class="header-item"><span class="header-label">Data File</span><span id="data_file"></span></div>
 <div class="header-item"><span class="header-label">Map File</span><span id="map_file"></span></div>
-<div class="header-actions"><button class="btn btn-light" onclick="show_model()" title="Settings"><i class="bi bi-gear-fill"></i></button><a id="git_but" class="btn btn-light" href="https://github.com/GeospatialCentroid/bird_flu_cattle" target="_blank" title="GitHub Repository"><i class="bi bi-github"></i></a></div>
+<div class="header-actions"><button class="btn btn-light" onclick="eventManager.show_model()" title="Settings"><i class="bi bi-gear-fill"></i></button><a id="git_but" class="btn btn-light" href="https://github.com/GeospatialCentroid/bird_flu_cattle" target="_blank" title="GitHub Repository"><i class="bi bi-github"></i></a></div>
 </header>
 <div class="dashboard-main">
 <section class="map-column"><div class="card map-card"><div id="map_wrapper"><div id="map"></div></div></div></section>
@@ -155,7 +155,7 @@
         <div class="col">
             <label for="start_dropdown">Start Event</label>
             <div id="start_dropdown" class="start_dropdown"></div>
-        </div><div class="col"><label for="end_dropdown">End Event</label><div id="end_dropdown" class="end_dropdown"></div></div><div class="col"><label for="type_dropdown">Additional Visualization</label><select id="type_display_dropdown" data="type"><option value="cluster_color">Cluster Color</option><option value="cluster_outline">Cluster Outline</option><option value="plot">Plot</option><option value="None"></option></select></div><div class="col"><label for="cow_color">Cow Color</label><span class="cow_color"><input type="text" class="cow_color picker" value="" data="color"/></span></div><div class="col"><button type="button" class="btn btn-success duplicate" onclick="duplicate_row(this);fix_picker();"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path></svg></button><button type="button" class="btn btn-danger" onclick="delete_row(this);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/></svg></button></div></div></div></div><div class="modal-footer"><button id="data_form_save_but" onclick="process_data_forms();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
+        </div><div class="col"><label for="end_dropdown">End Event</label><div id="end_dropdown" class="end_dropdown"></div></div><div class="col"><label for="type_dropdown">Additional Visualization</label><select id="type_display_dropdown" data="type"><option value="cluster_color">Cluster Color</option><option value="cluster_outline">Cluster Outline</option><option value="plot">Plot</option><option value="None"></option></select></div><div class="col"><label for="cow_color">Cow Color</label><span class="cow_color"><input type="text" class="cow_color picker" value="" data="color"/></span></div><div class="col"><button type="button" class="btn btn-success duplicate" onclick="duplicate_row(this);fix_picker();"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path></svg></button><button type="button" class="btn btn-danger" onclick="delete_row(this);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/></svg></button></div></div></div></div><div class="modal-footer"><button id="data_form_save_but" onclick="eventManager.process_data_forms();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
 
 <!-- Contact Tracing Modal -->
 <div class="modal fade" id="tracingModal" tabindex="-1" aria-hidden="true">
