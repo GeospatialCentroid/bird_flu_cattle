@@ -298,3 +298,39 @@ function getBezierCurve(latlng1, latlng2, bendFactor = 0.3) {
     
     return points;
 }
+
+function autoDetectDateFormat(dateStr) {
+    if (!dateStr) return 'YYYY-MM-DD'; // Fallback
+    
+    // Strip out times if they exist (e.g., "12/31/2024 14:30" -> "12/31/2024")
+    let datePart = dateStr.trim().split(/[ T]/)[0];
+
+    // Check for YYYY-MM-DD (Starts with 4 digits and uses hyphens)
+    if (/^\d{4}-\d{1,2}-\d{1,2}/.test(datePart)) {
+        return 'YYYY-MM-DD';
+    }
+
+    // Check for slash formats
+    if (datePart.includes('/')) {
+        let parts = datePart.split('/');
+        
+        if (parts.length >= 3) {
+            let part1 = parseInt(parts[0], 10);
+            let part2 = parseInt(parts[1], 10);
+
+            if (part1 > 12) {
+                // If the first number is > 12, it MUST be DD/MM/YYYY
+                return 'DD/MM/YYYY'; 
+            } else if (part2 > 12) {
+                // If the second number is > 12, it MUST be MM/DD/YYYY
+                return 'MM/DD/YYYY'; 
+            }
+            
+            // If both are <= 12 (ambiguous like 05/06/2024), default to US format
+            return 'MM/DD/YYYY';
+        }
+    }
+
+    return 'YYYY-MM-DD'; // Default fallback
+}
+

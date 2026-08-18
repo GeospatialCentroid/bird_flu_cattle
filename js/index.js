@@ -204,12 +204,12 @@ function after_filter(){
 
 function setup_interface(_event_settings){
 
-      console.log("setup_interface")
-      // make sure to account for date filers
+      
+      // make sure to account for date filters
       var start =  $("#init_filter_start_date").val()
       var end =  $("#init_filter_end_date").val()
       // filter the data
-
+console.log("setup_interface", start. end)
       record_manager.json_data=JSON.parse(JSON.stringify(record_manager.date_filter_data(record_manager.all_data,start,end)));
       if(record_manager.json_data.length==0){
             console.log("No data available, please adjust data range");
@@ -217,7 +217,7 @@ function setup_interface(_event_settings){
             $("#init_filter_end_date").addClass("error_field");
             // add delay to show model since it fades closed
             setTimeout( function() {
-                show_model();
+                eventManager.show_model();
             },300);
             return
 

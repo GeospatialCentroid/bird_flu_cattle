@@ -434,7 +434,7 @@ class Table_Manager {
                   }
                   // if we're dealing with a date object
                   if(_rows[i][_cols[p]] instanceof moment){
-                    text = _rows[i][_cols[p]].format('YYYY-MM-DD')
+                    text = _rows[i][_cols[p]].format(eventManager.displayMomentFormat)
                   }
                   if(text==null){
                     text=""
@@ -453,7 +453,7 @@ class Table_Manager {
     //take the currently selected layer and the id to make a selection
     var feature = this.get_feature(_id);
     if(feature.hasOwnProperty('START DATE')){
-        $("#filter_current_date").datepicker().val( feature["START DATE"].format('YYYY-MM-DD'))
+        $("#filter_current_date").datepicker().val( feature["START DATE"].format(eventManager.displayMomentFormat))
     }
      $("#filter_current_date").trigger('change');
     var id = feature["ID"]

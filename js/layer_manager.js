@@ -197,7 +197,7 @@ class Layer_Manager {
                     <span class="badge bg-info text-dark mb-1">Movement Step #${stepCounter}</span>
                 </div>
                 <b>Path:</b> Pen ${currentPen} &rarr; Pen ${nextPen}<br>
-                <b>Date Arrived:</b> ${nextRecord["START DATE"].format('YYYY-MM-DD')}<br>
+                <b>Date Arrived:</b> ${nextRecord["START DATE"].format(eventManager.displayMomentFormat)}<br>
                 <b>Recorded Event:</b> ${nextRecord["EVENT"] || "Move"}
             `);
 

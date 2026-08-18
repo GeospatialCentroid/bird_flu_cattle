@@ -95,10 +95,8 @@ class Marker_Manager {
             return div;
         };
         legend.addTo(this.map);
-        $("#count_display_dropdown").change(function() {
-             record_manager.search_by_date(moment($("#filter_current_date").val(),'YYYY-MM-DD') )
-
-
+       $("#count_display_dropdown").change(function() {
+            record_manager.search_by_date(moment($("#filter_current_date").val(),'YYYY-MM-DD') )
         });
     }
     create_marker(obj,location){
@@ -112,7 +110,7 @@ class Marker_Manager {
                 if(e["type"]!='plot'){
                     var records = marker_manager.get_event_records(obj["ID"],event_data[e.label])
                     for(var i=0;i<records.length;i++){
-                       popup_content+="<br/><span class='popup_label'>"+e.label+" From: </span> "+moment.unix(records[i]["start_date"]).format('YYYY-MM-DD')+" to "+ moment.unix (records[i]["end_date"]).format('YYYY-MM-DD')
+                       popup_content+="<br/><span class='popup_label'>"+e.label+" From: </span> "+moment.unix(records[i]["start_date"]).format(eventManager.displayMomentFormat)+" to "+ moment.unix (records[i]["end_date"]).format(eventManager.displayMomentFormat)
                     }
                 }
             }
@@ -143,7 +141,7 @@ class Marker_Manager {
             
           
 
-            var marker=L.marker(location, {icon: this.get_marker_icon(obj["ID"],marker_manager.check_status(obj["ID"], moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()))})
+            var marker=L.marker(location, {icon: this.get_marker_icon(obj["ID"],marker_manager.check_status(obj["ID"], moment($("#filter_current_date").val(), eventManager.displayMomentFormat).unix()))})            
             this.items.push(marker)
             this.marker_cluster.addLayer( marker)//
             marker.on('click', function(e) {
@@ -228,6 +226,8 @@ class Marker_Manager {
                 var e = event_settings[i]
                 if(e["type"]!='plot'){
                     var records = marker_manager.get_event_records(_id,event_data[e.label])
+                    console.log(records)
+                     console.log(_date)
                     for(var i=0;i<records.length;i++){
                          if( _date>=records[i]["start_date"] && _date<=records[i]["end_date"]){
                          marker_class= "marker_"+e.label;

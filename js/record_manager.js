@@ -33,7 +33,7 @@ class Record_Manager {
     // a dictionary of all the filters set
     this.filters={}
     this.progress_interval;
-    this.date_format='M/D/YYYY'
+    this.date_format;
    }
   init() {
     var $this=this
@@ -119,13 +119,42 @@ class Record_Manager {
             }
 
             html+='</select></div></div>'
+            
             $("#required_variables").append(html)
             }
         }
+         $('#DATE').on('change', function() {
+             $this.config_date_value( $this.json_data[0], $(this).val())
+         });
+        $this.config_date_value( $this.json_data[0],"DATE");
+    }
+    config_date_value(sampleDataRow, dateColumnKey) {
+    
+        // 1. Get the first date string from the data
+        let firstDateValue = sampleDataRow[dateColumnKey]; 
+        console.log("config_date_value", firstDateValue,sampleDataRow, dateColumnKey)
+        if (firstDateValue) {
+            // 2. Show it in the UI so the user can verify it
+            $('#first_date_preview').text(`(Preview: ${firstDateValue})`);
+            
+            // 3. Auto-detect the format
+            let guessedFormat = autoDetectDateFormat(firstDateValue);
+            
+            // 4. Set the dropdown to the guessed format
+            $('#csv_input_date_format').val(guessedFormat);
+        } else {
+            $('#first_date_preview').text("(No date found in first row)");
+        }
+        
+        // Open your modal
+        // $('#model_data_config').modal('show');
     }
     data_config_set(){
         $('body').addClass('waiting-cursor');
         // called from interface
+        // support multiple incoming data formats
+        let selectedInputFormat = $('#csv_input_date_format').val();
+        record_manager.date_format = selectedInputFormat;   
         //update the data to conform with the expected columns
           // Precompute the variable-to-oldKey map once
         const keyMap = {};
@@ -137,7 +166,7 @@ class Record_Manager {
           }
         }
 
-        // Now update json_data efficiently
+        // Now update json_data efficiently (rename columns to names match expected ones)
         const data = this.json_data;
         for (let i = 0; i < data.length; i++) {
           const obj = data[i];
@@ -271,7 +300,7 @@ class Record_Manager {
         for (var i=0;i<data.length;i++){
             var obj = data[i];
 
-            if( (!has_ids || ids.includes(obj["ID"])) && moment(obj["DATE"],this.date_format).unix() >= moment(start,'YYYY-MM-DD').unix() && moment(obj["DATE"],this.date_format).unix() <= moment(end,'YYYY-MM-DD').unix()){
+            if( (!has_ids || ids.includes(obj["ID"])) && moment(obj["DATE"],this.date_format).unix() >= moment(start,this.date_format).unix() && moment(obj["DATE"],this.date_format).unix() <= moment(end,this.date_format).unix()){
                  filtered_data.push(obj);
             }
         }
@@ -279,7 +308,7 @@ class Record_Manager {
     }
     add_date_search(start,end){
         console.log("add_date_search",start,end);
-          console.log("add_date_search",start.format('YYYY-MM-DD'),end.format('YYYY-MM-DD'));
+          console.log("add_date_search",start.format(eventManager.displayMomentFormat),end.format(eventManager.displayMomentFormat));
         var  $this=this
         //date search
         $('#filter_date_checkbox').change(
@@ -288,25 +317,25 @@ class Record_Manager {
             }
         );
          $("#filter_start_date").datepicker("destroy");
-        $("#filter_start_date").datepicker({ dateFormat: 'yy-mm-dd',
-                minDate:start.format('YYYY-MM-DD'),
-                maxDate: end.format('YYYY-MM-DD')}).val(start.format('YYYY-MM-DD'))
+        $("#filter_start_date").datepicker({ dateFormat: eventManager.displayJqFormat,
+                minDate:start.format(eventManager.displayMomentFormat),
+                maxDate: end.format(eventManager.displayMomentFormat)}).val(start.format(eventManager.displayMomentFormat))
 
 
          $("#filter_end_date").datepicker("destroy");
-        $("#filter_end_date").datepicker({ dateFormat: 'yy-mm-dd',
-                minDate:start.format('YYYY-MM-DD'),
-                maxDate: end.format('YYYY-MM-DD')}).val(end.format('YYYY-MM-DD'))
+        $("#filter_end_date").datepicker({ dateFormat: eventManager.displayJqFormat,
+                minDate:start.format(eventManager.displayMomentFormat),
+                maxDate: end.format(eventManager.displayMomentFormat)}).val(end.format(eventManager.displayMomentFormat))
 
          // add current date
         $("#filter_current_date").datepicker("destroy");
-         $("#filter_current_date").datepicker({ dateFormat: 'yy-mm-dd',
-                minDate:start.format('YYYY-MM-DD'),
-                maxDate: end.format('YYYY-MM-DD')}).val(start.format('YYYY-MM-DD'))
+         $("#filter_current_date").datepicker({ dateFormat: eventManager.displayJqFormat,
+                minDate:start.format(eventManager.displayMomentFormat),
+                maxDate: end.format(eventManager.displayMomentFormat)}).val(start.format(eventManager.displayMomentFormat))
 
          $("#filter_current_date").off('change');
          $("#filter_current_date").change( function() {
-              record_manager.search_by_date(moment($("#filter_current_date").val(),'YYYY-MM-DD') )
+              record_manager.search_by_date(moment($("#filter_current_date").val(), eventManager.displayMomentFormat) )
 
               $this.filters.date=$("#filter_current_date").val()
 
@@ -344,8 +373,8 @@ class Record_Manager {
             max: values[1],
             values:values,
             slide: function( event, ui ) {
-               $("#filter_start_date").datepicker().val(moment.unix(ui.values[0]).format('YYYY-MM-DD'))
-               $("#filter_end_date").datepicker().val(moment.unix(ui.values[1]).format('YYYY-MM-DD'))
+               $("#filter_start_date").datepicker().val(moment.unix(ui.values[0]).format(eventManager.displayMomentFormat))
+               $("#filter_end_date").datepicker().val(moment.unix(ui.values[1]).format(eventManager.displayMomentFormat))
                record_manager.delay_date_change()
 
          }
@@ -402,7 +431,7 @@ class Record_Manager {
     // functions for polishing the data for use in visualizing on the map
     //-------
    complete_end_data(_end_date){
-        console.log("_end_date",_end_date.format('YYYY-MM-DD' ))
+        console.log("_end_date",_end_date)
         // Since we only have movement data - we don't know how long the cows have been in their last Pen
         // For any records that doesn't have an END Date - use the End Date
         for(var i=0;i<this.json_data.length;i++){
@@ -417,7 +446,7 @@ class Record_Manager {
        }
     }
     complete_start_data(_start_date){
-        console.log("_star_date",_start_date.format('YYYY-MM-DD' ))
+        console.log("_star_date",_start_date)
         // Add a record for the first instance of each cow ID giving it a duration of _start_date to end date
         // be sure to omit records that start on the _start_date
         var ids=[] // store the unique ids
@@ -489,7 +518,7 @@ class Record_Manager {
                 
                 _array.push({
                     "id": t["ID"], 
-                    "start_date": moment(t["START DATE"], this.date_format).unix(), 
+                   "start_date": t["START DATE"].unix(),
                     "end_date": end_date,
                     "from_pen": t["FROM PEN"]
                 });
@@ -515,9 +544,9 @@ class Record_Manager {
                     if(sorted[i]["EVENT"]==infection_val){
                         infection_record = sorted[i]
 
-                        $("#date_first_infection").html(infection_record["START DATE"].format('YYYY-MM-DD'))
+                        $("#date_first_infection").html(infection_record["START DATE"].format(eventManager.displayMomentFormat))
                         $("#date_first_infection").click(function() {
-                            $("#filter_current_date").datepicker().val( infection_record["START DATE"].format('YYYY-MM-DD'))
+                            $("#filter_current_date").datepicker().val( infection_record["START DATE"].format(eventManager.displayMomentFormat))
                             $("#filter_current_date").trigger('change');
                         });
                         break
@@ -548,7 +577,7 @@ class Record_Manager {
 
         marker_manager.reset(); // remove all markers
        
-        let global_end_date = moment($("#filter_end_date").val());
+        let global_end_date = moment($("#filter_end_date").val(), eventManager.displayMomentFormat);
 
         for(var i = 0; i < this.json_data.length; i++) {
             var t = this.json_data[i];
@@ -673,8 +702,8 @@ class Record_Manager {
                 }
                 // for ease of future access convert end_date and start_date into formatted datetime objects
                 var matched_day=Object.assign({}, match_days[i]);
-                matched_day["start_date"]=moment.unix(matched_day["start_date"]).format('YYYY-MM-DD')
-                matched_day["end_date"]=moment.unix(matched_day["end_date"]).format('YYYY-MM-DD')
+                matched_day["start_date"]=moment.unix(matched_day["start_date"]).format(eventManager.displayMomentFormat)
+                matched_day["end_date"]=moment.unix(matched_day["end_date"]).format(eventManager.displayMomentFormat)
                 ids[match_days[i]["from_pen"]].push(matched_day)
             }
             //store the originating pen for later
@@ -707,7 +736,7 @@ class Record_Manager {
          if(_at_date){
            // use the current date to filter the data
            var temp_data=[]
-           var curr_date =  moment($("#filter_current_date").val(),'YYYY-MM-DD')
+           var curr_date = moment($("#filter_current_date").val(), eventManager.displayMomentFormat);
            for(var i=0;i<data.length;i++){
                 var t=data[i]
                 if(curr_date.isBetween(t["START DATE"], t["END DATE"]) || curr_date.isSame(t["START DATE"]) ){
@@ -746,20 +775,19 @@ class Record_Manager {
         var slider=$("#filter_date .filter_slider_box")
 
         //if we are at the end. start at the beginning
-         if(moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()==moment($("#filter_end_date").val(),'YYYY-MM-DD').unix()){
-              var start_date = moment($("#filter_start_date").val(),'YYYY-MM-DD').unix()-86400
-              $("#filter_current_date").datepicker().val(moment.unix(start_date).format('YYYY-MM-DD' ))
-
-          }
+        if (moment($("#filter_current_date").val(), eventManager.displayMomentFormat).unix() == moment($("#filter_end_date").val(), eventManager.displayMomentFormat).unix()){
+            var start_date = moment($("#filter_start_date").val(), eventManager.displayMomentFormat).unix() - 86400;
+            $("#filter_current_date").datepicker().val(moment.unix(start_date).format(eventManager.displayMomentFormat));
+        }
         $this.slider_step(slider,icon)
     }
    slider_step(_slider,_icon) {
 
         var $this=this
-        var curr_position= moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()
+        var curr_position = moment($("#filter_current_date").val(), eventManager.displayMomentFormat).unix();
         var next_position=curr_position+86400
 
-         $("#filter_current_date").datepicker().val(moment.unix(next_position).format('YYYY-MM-DD'))
+         $("#filter_current_date").datepicker().val(moment.unix(next_position).format(eventManager.displayMomentFormat))
          $("#filter_current_date").trigger('change');
 
          //if we are at the end. stop
@@ -781,9 +809,9 @@ class Record_Manager {
     }
     move_to_date(amt){
         record_manager.slider_pause($(".slider_toggle").children(":first"))
-          var curr_position= moment($("#filter_current_date").val(),'YYYY-MM-DD').unix()
+            var curr_position = moment($("#filter_current_date").val(), eventManager.displayMomentFormat).unix();            
             var next_position=curr_position+(86400*amt)
-            $("#filter_current_date").datepicker().val(moment.unix(next_position).format('YYYY-MM-DD'))
+            $("#filter_current_date").datepicker().val(moment.unix(next_position).format(eventManager.displayMomentFormat))
          $("#filter_current_date").trigger('change');
     }
 
