@@ -78,6 +78,7 @@ function initialize_interface(_data,wait){
   config= $.csv.toObjects(_data.replaceAll('\t', ''))
   setup_params()
   eventManager = new EventManager();
+  clinicalReportManager.setupReportDateControls();
 
  table_manager = new Table_Manager({
     elm_wrap:"data_table_wrapper",
