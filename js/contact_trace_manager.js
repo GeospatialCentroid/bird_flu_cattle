@@ -29,20 +29,19 @@ class ContactTraceManager {
     }
 
     updateTraceDates() {
-        // Use your global map filter date as the anchor point
-        let anchorDateVal = $("#filter_current_date").datepicker().val() || moment().format(eventManager.displayMomentFormat);
-        let daysToTrace = parseInt($('#trace_duration').val()) || 0;
+    // Use your global map filter date as the anchor point
+    let anchorDateVal = $("#filter_current_date").datepicker().val() || moment().format(eventManager.displayMomentFormat);
+    let daysToTrace = parseInt($('#trace_duration').val()) || 0;
 
-       let baseDate = moment(anchorDateVal, eventManager.displayMomentFormat);
-        let targetDate = moment(anchorDateVal, eventManager.displayMomentFormat).add(daysToTrace, 'days');
+    let baseDate = moment(anchorDateVal, eventManager.displayMomentFormat);
+    let targetDate = moment(anchorDateVal, eventManager.displayMomentFormat).add(daysToTrace, 'days');
+    
+    let startDate = moment.min(baseDate, targetDate);
+    let endDate = moment.max(baseDate, targetDate);
         
-        // Safely handle negative trace durations (past tracing)
-        // ensuring the start date is always the earlier date of the two
-        let startDate = moment.min(baseDate, targetDate);
-        let endDate = moment.max(baseDate, targetDate);
-
-        $('#trace_start_date').val(startDate.format(eventManager.displayJqFormat));
-        $('#trace_end_date').val(endDate.format(eventManager.displayJqFormat));
+    // FIX: Use displayMomentFormat here instead of displayJqFormat
+    $('#trace_start_date').val(startDate.format(eventManager.displayMomentFormat));
+    $('#trace_end_date').val(endDate.format(eventManager.displayMomentFormat));
     }
 
     updateTraceDuration() {
@@ -96,38 +95,35 @@ class ContactTraceManager {
     }
 
     // Function now accepts explicit start and end dates
-   getContactTraceData(cowId, traceStartStr, traceEndStr) {
-        var data = record_manager.json_data; 
+    getContactTraceData(cowId, traceStart, traceEnd) {
+        var data = record_manager.json_data; // Assumes record_manager is available globally
         
-        // 1. Parse the strings coming from the UI using the UI format
-        let startDate = moment(traceStartStr, eventManager.displayMomentFormat);
-        let endDate = moment(traceEndStr, eventManager.displayMomentFormat);
+        let startDate = moment(traceStart);
+        let endDate = moment(traceEnd);
         
         let contacts = [];
         
-        let targetCowMovements = data.filter(record => {
-            // 2. Assuming record["START DATE"] is a raw string from the CSV, 
-            // parse it using the data format before comparing!
-            let recordStart = moment(record["START DATE"], record_manager.date_format);
-            let recordEnd = moment(record["END DATE"], record_manager.date_format);
-
-            return String(record["ID"]) === String(cowId) && 
-                   recordStart.isBefore(endDate) && 
-                   recordEnd.isAfter(startDate);
-        });
+        // 1. Get all movements for the target cow in the time window
+        let targetCowMovements = data.filter(record => 
+            String(record["ID"]) === String(cowId) && 
+            record["START DATE"].isBefore(endDate) && 
+            record["END DATE"].isAfter(startDate)
+        );
 
         targetCowMovements.forEach(targetMove => {
-            // ... setup activePen and potentialContacts ...
+            let activePen = targetMove["IN PEN"] || targetMove["FROM PEN"]; 
+
+            // 2. Find other cows that were in that SAME active pen
+            let potentialContacts = data.filter(record => 
+                String(record["ID"]) !== String(cowId) && 
+                (record["IN PEN"] === activePen || record["FROM PEN"] === activePen) 
+            );
             
             potentialContacts.forEach(contactMove => {
-                let targetStart = moment(targetMove["START DATE"], record_manager.date_format);
-                let targetEnd = moment(targetMove["END DATE"], record_manager.date_format);
-                let contactStart = moment(contactMove["START DATE"], record_manager.date_format);
-                let contactEnd = moment(contactMove["END DATE"], record_manager.date_format);
-
-                let overlapStart = moment.max(targetStart, contactStart);
-                let overlapEnd = moment.min(targetEnd, contactEnd);
+                let overlapStart = moment.max(targetMove["START DATE"], contactMove["START DATE"]);
+                let overlapEnd = moment.min(targetMove["END DATE"], contactMove["END DATE"]);
                 
+                // Still constrain the specific overlap event to the boundaries of our trace window
                 let traceOverlapStart = moment.max(overlapStart, startDate);
                 let traceOverlapEnd = moment.min(overlapEnd, endDate);
                 
@@ -139,8 +135,7 @@ class ContactTraceManager {
                         pen: activePen, 
                         event: contactMove["EVENT"] || "Unknown",
                         duration: durationDays === 0 ? 1 : durationDays, 
-                        // 3. Format the output string FOR THE UI using the UI format
-                        dates: `${traceOverlapStart.format(eventManager.displayMomentFormat)} to ${traceOverlapEnd.format(eventManager.displayMomentFormat)}`
+                        dates: `${traceOverlapStart.format('YYYY-MM-DD')} to ${traceOverlapEnd.format('YYYY-MM-DD')}`
                     });
                 }
             });
