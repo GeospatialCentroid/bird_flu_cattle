@@ -444,10 +444,14 @@ html,body{
 /* ==========================================================
    Modals
    ========================================================== */
+.modal-dialog {
+  max-width: 90vw !important; /* Uses 90% of the viewport width */
+}
 .modal-content{
     border:none;
     border-radius:14px;
     box-shadow:0 12px 32px rgba(0,0,0,.18);
+    
 }
 .modal-header{
     border-bottom:1px solid var(--border);

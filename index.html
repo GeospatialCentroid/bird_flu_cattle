@@ -89,7 +89,7 @@
   </section>
   <section class="card"><h6>First Infection</h6>
     <button id="date_first_infection" class="btn btn-outline-primary w-100"></button>
-<button class="btn btn-outline-primary w-100" onclick="clinicalReportManager.openModal()">Open Report</button>
+<button class="btn btn-outline-primary w-100" onclick="clinicalReportManager.openModal();clinicalReportManager.generateTable();">Open Report</button>
 
 </section>
 
@@ -172,22 +172,32 @@
 </div>
 </form>
 </div><div class="modal-footer"><button id="data_config_save_but" onclick="record_manager.data_config_set();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
+
 <div class="modal fade custom-modal" id="model_data_form" style="z-index:99999999" tabindex="-1" data-bs-backdrop="true"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="data_form_label">Track Events</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     
     <div class="modal-body">
-        
-     <label for="global_date_format" class="form-check-label font-weight-bold">Global Date Format</label>
-    <select id="global_date_format" class="form-select w-auto">
-        <!-- The value is for Moment.js, the data-jq is for jQuery UI -->
-        
-        <option value="MM/DD/YYYY" data-jq="mm/dd/yy" selected>MM/DD/YYYY</option>
-        <!-- <option value="DD/MM/YYYY" data-jq="dd/mm/yy">DD/MM/YYYY</option>
-        <option value="YYYY-MM-DD" data-jq="yy-mm-dd">YYYY-MM-DD</option> -->
-    </select>
-        
-        <label class="form-check-label font-weight-bold" for="init_filter_start_date">Start Date</label><input id="init_filter_start_date" type="text" class="date_field"/><span id="init_filter_date_to"></span><label class="form-check-label font-weight-bold" for="init_filter_end_date">End Date</label><input id="init_filter_end_date" type="text" class="date_field"/><label for="filter_id_checkbox">Filter by Cluster Color Event</label><input class="form-check-input" type="checkbox" value="" id="filter_id_checkbox">
-         <div id="data_form"><div class="row">
+         <div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
+            
+        <div class="col-md-3">
+        <label class="form-check-label font-weight-bold" for="init_filter_start_date">Start Date</label><input id="init_filter_start_date" type="text" class="date_field"/><span id="init_filter_date_to"></span>
+       </div>
+       <div class="col-md-3">
+        <label class="form-check-label font-weight-bold" for="init_filter_end_date">End Date</label><input id="init_filter_end_date" type="text" class="date_field"/>
+       </div>
+       <div class="col-md-3">
+            <label for="global_date_format" class="form-check-label font-weight-bold">Global Date Format</label>
+            <select id="global_date_format" class="form-select w-auto">
+                <!-- The value is for Moment.js, the data-jq is for jQuery UI -->
+                
+                <option value="MM/DD/YYYY" data-jq="mm/dd/yy" selected>MM/DD/YYYY</option>
+                <!-- <option value="DD/MM/YYYY" data-jq="dd/mm/yy">DD/MM/YYYY</option>
+                <option value="YYYY-MM-DD" data-jq="yy-mm-dd">YYYY-MM-DD</option> -->
+            </select>
+        </div> 
+        <label for="filter_id_checkbox">Filter by Cluster Color Event</label><input class="form-check-input" type="checkbox" value="" id="filter_id_checkbox">     
+    </div>
+        <div id="data_form"><div class="row">
         
 
         <input class="label" type="input" data="label"/>
@@ -199,14 +209,14 @@
 
 <!-- Report Modal-->
 <div class="modal fade" id="clinicalReportModal" tabindex="-1" aria-hidden="true" style="z-index: 105000;">
-              <div class="modal-dialog modal-xl">
+              <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
                     <h5 class="modal-title">Clinical Signs Frequency Report</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
-                    <div class="row mb-3 align-items-end">
+                   <div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
                        
                         <div class="col-md-3">
                             <label class="form-label">Start Date</label>
@@ -220,12 +230,12 @@
                             <label class="form-label">Duration (Days)</label>
                             <input type="number" id="report_duration" class="form-control" value="21" min="0">
                         </div>
-                        <div class="col-md-3 d-flex gap-2">
-                            <button class="btn btn-primary flex-grow-1" id="generate_report_btn">Generate</button>
-                            <button class="btn btn-outline-success" id="download_report_btn" title="Download CSV">
-                               <i class="bi bi-download"></i> Download CSV
+                       
+                            <button class="btn btn-primary" id="generate_report_btn">Generate</button>
+                            <button class="btn btn-success" id="download_report_btn" title="Download CSV">
+                               <i class="bi bi-download"></i> CSV
                             </button>
-                        </div>
+                       
                     </div>
                     <hr>
                     <div id="report_table_container" class="table-responsive"></div>
@@ -260,9 +270,9 @@
         <label class="form-label">Trace Window (Days)</label>
         <input type="number" id="trace_duration" class="form-control" value="14">
     </div>
-    <button class="btn btn-primary" onclick="contactTracer.runContactTrace()">Generate Report</button>
+    <button class="btn btn-primary" onclick="contactTracer.runContactTrace()">Generate</button>
     <button class="btn btn-success" onclick="contactTracer.downloadTableAsCSV()">
-        <i class="bi bi-download"></i> Download CSV
+        <i class="bi bi-download"></i> CSV
     </button>
 </div>
 
