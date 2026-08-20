@@ -35,7 +35,7 @@ $( function() {
 
     load_data("app.csv","csv",initialize_interface)
 
-    $(document).on('change','#data_input',function(){on_file_change(event);})
+    $(document).on('change','#data_input',function(){eventManager.on_file_change(event);})
 
     $("#map_wrapper").resizable({
     handles: 's',
