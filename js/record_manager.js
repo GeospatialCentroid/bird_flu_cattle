@@ -539,9 +539,14 @@ class Record_Manager {
         if(infection_val){
             // first sort
             const sorted = [...this.json_data].sort((a, b) => a["START DATE"] - b["START DATE"]);
+            
+            // Convert infection_val to an array if it isn't one already
+            const infectionArray = Array.isArray(infection_val) ? infection_val : [infection_val];
+
             for(var i=0;i<this.json_data.length;i++){
                  try{
-                    if(sorted[i]["EVENT"]==infection_val){
+                    // Check if the event exists in the array of selected events
+                    if(infectionArray.includes(sorted[i]["EVENT"])){
                         infection_record = sorted[i]
 
                         $("#date_first_infection").html(infection_record["START DATE"].format(eventManager.displayMomentFormat))
