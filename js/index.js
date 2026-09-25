@@ -210,7 +210,7 @@ function setup_interface(_event_settings){
       var start =  $("#init_filter_start_date").val()
       var end =  $("#init_filter_end_date").val()
       // filter the data
-console.log("setup_interface", start. end)
+    console.log("setup_interface", start. end)
       record_manager.json_data=JSON.parse(JSON.stringify(record_manager.date_filter_data(record_manager.all_data,start,end)));
       if(record_manager.json_data.length==0){
             console.log("No data available, please adjust data range");
@@ -224,6 +224,7 @@ console.log("setup_interface", start. end)
 
       }
       record_manager.populate_search(record_manager.json_data)
+      layer_manager.generate_missing_pens(record_manager.json_data);
       //
       $("#init_filter_start_date").removeClass("error_field");
       $("#init_filter_end_date").removeClass("error_field");

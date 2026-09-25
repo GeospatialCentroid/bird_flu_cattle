@@ -124,7 +124,6 @@ class Layer_Manager {
     }
 
     // Main GeoJSON file loader
-    // Main GeoJSON file loader
     create_geojson(_data) {
         layer_manager.pen_center = {};
         layer_manager.alt_pen_center = {};
@@ -136,7 +135,24 @@ class Layer_Manager {
 
         layer_manager.poly.eachLayer((layer) => layer_manager.index_pen_layer(layer));
     }
+    generate_missing_pens(data) {
+        if (!data || !Array.isArray(data)) return;
 
+        let unique_pens = new Set();
+        
+        // Scan common pen fields in your dataset
+        data.forEach(row => {
+            if (row["IN PEN"]) unique_pens.add(String(row["IN PEN"]));
+            if (row["TO PEN"]) unique_pens.add(String(row["TO PEN"]));
+            if (row["FROM PEN"]) unique_pens.add(String(row["FROM PEN"]));
+            if (row["PEN"]) unique_pens.add(String(row["PEN"]));
+        });
+
+        // Trigger location lookup/auto-generation for each pen
+        unique_pens.forEach(pen_id => {
+            this.get_poly_location(pen_id);
+        });
+    }
     // Fallback single-pen auto-generator
     generate_default_pen(pen_id) {
         if (layer_manager.auto_pen_index === undefined) {

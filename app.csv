@@ -1,5 +1,5 @@
 name,type,data,title_col,filter_cols,date,show_cols,drawing_info,legend
-pens,geojson,data/Farm_A_9_11_25 copy.geojson,id,,,id," {
+pens,geojson,data/Farm_A_9_11_25 copy_.geojson,id,,,id," {
 ""renderer"": {
 ""type"": ""simple"",
 ""symbol"": {
@@ -41,7 +41,7 @@ pens,geojson,data/Farm_A_9_11_25 copy.geojson,id,,,id," {
         ]
     }
 ]}"
-movement,csv,data/Farm A Centroid Data Cleaned 9.11.25.csv,ID,,DATE,," {
+movement,csv,data/Farm A Centroid Data Cleaned 9.11.25_.csv,ID,,DATE,," {
 ""renderer"": {
 ""type"": ""simple"",
 ""symbol"": {

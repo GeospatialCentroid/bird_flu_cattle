@@ -270,18 +270,16 @@ class EventManager {
         this.required_files[ext]["file_name"] = _file;
         this.required_files[ext]["data"] = _data;
 
-        var requirements_met = true;
-        for (var r in this.required_files) {
-            if (Object.keys(this.required_files[r]).length === 0) {
-                requirements_met = false;
-            }
-        }
-        
-        if (requirements_met) {
+        // Only require CSV data to be present to proceed
+        if (this.required_files[".csv"].data) {
             record_manager.parse_data(this.required_files[".csv"].data, record_manager);
             $("#data_file").html(this.required_files[".csv"].file_name);
-            layer_manager.create_geojson(JSON.parse(this.required_files[".geojson"].data));
-            $("#map_file").html(this.required_files[".geojson"].file_name);
+            
+            // Optionally load GeoJSON if available
+            if (this.required_files[".geojson"].data) {
+                layer_manager.create_geojson(JSON.parse(this.required_files[".geojson"].data));
+                $("#map_file").html(this.required_files[".geojson"].file_name);
+            }
         }
     }
 
