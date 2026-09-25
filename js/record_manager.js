@@ -251,6 +251,31 @@ class Record_Manager {
         load_data('settings_config.json','json',eventManager.init_event_prompt)
 
     }
+    auto_generate_pens_from_data(data) {
+        if (!layer_manager.pen_center) {
+            layer_manager.pen_center = {};
+        }
+
+        // Find all unique Pen IDs across the dataset
+        let uniquePens = new Set();
+        data.forEach(row => {
+            if (row["IN PEN"]) uniquePens.add(String(row["IN PEN"]));
+            if (row["TO PEN"]) uniquePens.add(String(row["TO PEN"]));
+            if (row["FROM PEN"]) uniquePens.add(String(row["FROM PEN"]));
+        });
+
+        // Generate fallback coordinate [0,0] for every pen not in GeoJSON
+        uniquePens.forEach(penId => {
+            if (!layer_manager.pen_center[penId]) {
+                layer_manager.get_poly_location(penId);
+            }
+        });
+
+        // Center map view on [0, 0] if no GeoJSON was loaded
+        if (map_manager && map_manager.map) {
+            map_manager.map.setView([0, 0], 15);
+        }
+    }
     get_date_list($this,data){
         var date_list=[]
         if($this?.date){
@@ -538,15 +563,16 @@ class Record_Manager {
 
         if(infection_val){
             // first sort
-            const sorted = [...this.json_data].sort((a, b) => a["START DATE"] - b["START DATE"]);
-            
+            const sorted = [...this.json_data].sort((a, b) => a["START DATE"].valueOf() - b["START DATE"].valueOf());
             // Convert infection_val to an array if it isn't one already
             const infectionArray = Array.isArray(infection_val) ? infection_val : [infection_val];
 
             for(var i=0;i<this.json_data.length;i++){
                  try{
                     // Check if the event exists in the array of selected events
-                    if(infectionArray.includes(sorted[i]["EVENT"])){
+                    var eventName = sorted[i]["EVENT"] ? sorted[i]["EVENT"].trim() : "";
+
+                    if(infectionArray.includes(eventName)){
                         infection_record = sorted[i]
 
                         $("#date_first_infection").html(infection_record["START DATE"].format(eventManager.displayMomentFormat))

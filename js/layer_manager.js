@@ -10,139 +10,255 @@
 */
 
 class Layer_Manager {
-  constructor(properties) {
-    //store all the properties passed
-    for (var p in properties){
-        this[p]=properties[p]
+    constructor(properties) {
+        for (var p in properties) {
+            this[p] = properties[p];
+        }
+        this.poly = null;
+        this.pen_center = {};
+        this.alt_pen_center = {};
+        this.networkLayer = L.layerGroup().addTo(map_manager.map);
+        this.auto_pen_index = 0;
+
     }
-    this.poly;
-    //create a layer for showing the disease network lines 
-    this.networkLayer = L.layerGroup().addTo(map_manager.map);
 
-  }
-  create_geojson(_data){
-        // create lookup chart too
-        layer_manager.pen_center={}
-
-        // create lookup for alt_ids
-        layer_manager.alt_pen_center={}
-        layer_manager.poly = L.geoJson(_data, {
+    // Shared helper for GeoJSON layer configuration
+    get_geojson_options() {
+        return {
             style: {
                 fillColor: '#b5ffb4',
-                weight: .2,
+                weight: 0.2,
                 opacity: 1,
                 color: '#b5ffb4',
                 fillOpacity: 0.3
             },
-            onEachFeature: function (feature, layer) {
-            // Build title line
-            var title =  feature.properties.id;
-            if (feature.properties.name) {
-              title += " (" + feature.properties.name + ")";
-            }
-                var b = layer.getBounds()
-                var tooltip = L.tooltip([b._northEast.lat,b._southWest.lng],{
-                content:String(title)
-                ,permanent: true, opacity: 0.9,className: "polygon_label",direction: "right",offset:L.point(-5, 9)
-                })
-                .addTo(map_manager.map);
+            onEachFeature: (feature, layer) => {
+                var title = feature.properties.id;
+                if (feature.properties.name) {
+                    title += " (" + feature.properties.name + ")";
+                }
+
+                var b = layer.getBounds();
+                L.tooltip([b._northEast.lat, b._southWest.lng], {
+                    content: String(title),
+                    permanent: true,
+                    opacity: 0.9,
+                    className: "polygon_label",
+                    direction: "right",
+                    offset: L.point(-5, 9)
+                }).addTo(map_manager.map);
 
                 var exclude = ["stroke", "stroke-width", "stroke-opacity", "fill", "fill-opacity"];
 
+                var popup_content = "<strong>PEN ID: " + title + "</strong><br/>";
+                popup_content += "<table>";
+                for (var p in feature.properties) {
+                    if (!exclude.includes(p) && p !== "id" && p !== "name") {
+                        popup_content += "<tr><td><b>" + p + ":</b></td><td>" + feature.properties[p] + "</td></tr>";
+                    }
+                }
+                popup_content += "</table>";
+                popup_content += "<a href='javascript:void(0);' onclick='record_manager.show_data(\"" + feature.properties.id + "\",\"IN PEN\",true)'>Show Pen Data</a>";
 
+                popup_content +="<br><button id='toggle_edit_btn' class='btn btn-outline-primary btn-sm' onclick='layer_manager.toggle_geojson_editing();'><i class='bi bi-pencil-square'></i></button>"
+                popup_content += `<button id='edit_download_btn' class='btn btn-outline-primary btn-sm' onclick="download('geojson.geojson', JSON.stringify(layer_manager.poly.toGeoJSON()))"><i class='bi bi-download'></i></button>`;
+                layer.on('click', (e) => {
+                    map_manager.show_highlight_geo_json(feature);
+                    let popup = L.popup()
+                        .setLatLng(e.latlng)
+                        .setContent(popup_content)
+                        .openOn(map_manager.map);
 
-            // Start popup content
-            var popup_content = "<strong>"+"PEN ID: " + title + "</strong><br/>";
-            popup_content += "<table>";
-
-            for (var p in feature.properties) {
-              if (!exclude.includes(p) && p !== "id" && p !== "name") {
-                popup_content += "<tr><td><b>" + p + ":</b></td><td>" + feature.properties[p] + "</td></tr>";
-              }
-            }
-            popup_content += "</table>";
-                popup_content+="<a href='javascript:void(0);' onclick='record_manager.show_data(\""+feature.properties.id+"\",\"IN PEN\",true)'>Show Pen Data</a>"
-               layer.on('click', function(e) {
-                  map_manager.show_highlight_geo_json(feature)
-                  let popup = L.popup()
-                    .setLatLng(e.latlng)
-                    .setContent(popup_content)
-                    .openOn(map_manager.map);
-                      // close event popup
-                      popup.on("remove", function () {
-                         map_manager.hide_highlight_feature()
-                      });
-
-
-
+                    popup.on("remove", () => {
+                        map_manager.hide_highlight_feature();
+                    });
                 });
+                let sync_center = () => {
+                    let pen_id = String(feature.properties.id);
+                    layer_manager.pen_center[pen_id] = layer.getCenter();
+                };
+                layer.on('pm:edit', sync_center);
+                layer.on('pm:dragend', sync_center);
             }
-        })
-        layer_manager.poly.addTo(map_manager.map);
-
-        layer_manager.poly.eachLayer(function(layer) {
-            // populate an object with the pen id as the key and center point for use in quick positioning of the cows
-            layer_manager.pen_center[String(layer.feature.properties.id)]=layer.getCenter()
-
-            // do the same for the alt pen centers
-            if(layer.feature.properties.hasOwnProperty('alt_ids')){
-               var alt_ids =  layer.feature.properties.alt_ids.split(",");
-               for(var a in alt_ids){
-                    layer_manager.alt_pen_center[String(alt_ids[a])]=layer.getCenter()
-               }
-            }
-
-        });
+        };
     }
-    get_poly_location(_id){
+    // Add this method to Layer_Manager:
+    toggle_geojson_editing() {
+        this.is_editing = !this.is_editing;
 
-        // cows are positioned in pens each pen should know how many cows it contains
-        if(!layer_manager.pen_center.hasOwnProperty(String(_id))){
-            // pen not found
-            // lets try to find it in the alt ids
-           return layer_manager.alt_pen_center[String(_id)]
+        if (this.poly) {
+            this.poly.eachLayer((layer) => {
+                // todo enable layer dragging
+                if (this.is_editing) {
+                    layer.pm.enable({
+                        allowSelfIntersection: false,
+                        draggable: true
+                    });
+                } else {
+                    layer.pm.disable();
+                }
+            });
         }
 
-       return layer_manager.pen_center[String(_id)]
-
+        // Update button text and style
+        let $btn = $('#toggle_edit_btn');
+        if (this.is_editing) {
+            $btn.removeClass('btn-outline-primary').addClass('btn-success').html('<i class="bi bi-check-lg"></i>');
+        } else {
+            $btn.removeClass('btn-success').addClass('btn-outline-primary').html('<i class="bi bi-pencil-square"></i>');
+        }
     }
-//layer_manager.get_poly_location(contact.pen)
+    // Shared helper for indexing center coordinates and alt IDs
+    index_pen_layer(layer) {
+        if (!layer.feature || !layer.feature.properties) return;
 
- mapTransmissionNetwork(contacts, targetCowPenId) {
-    this.networkLayer.clearLayers();
-    
-    let targetPenCoords = layer_manager.get_poly_location(targetCowPenId); 
-    
-    contacts.forEach(contact => {
-        let contactPenCoords = layer_manager.get_poly_location(contact.pen);
+        let pen_id = String(layer.feature.properties.id);
+        layer_manager.pen_center[pen_id] = layer.getCenter();
+
+        if (layer.feature.properties.hasOwnProperty('alt_ids')) {
+            var alt_ids = layer.feature.properties.alt_ids.split(",");
+            for (var a in alt_ids) {
+                layer_manager.alt_pen_center[String(alt_ids[a])] = layer.getCenter();
+            }
+        }
+    }
+
+    // Main GeoJSON file loader
+    // Main GeoJSON file loader
+    create_geojson(_data) {
+        layer_manager.pen_center = {};
+        layer_manager.alt_pen_center = {};
+        layer_manager.grid_anchor = null;  // Reset the anchor point
+        layer_manager.auto_pen_index = 0;  // Reset the grid counter
+
+        layer_manager.poly = L.geoJson(_data, layer_manager.get_geojson_options());
+        layer_manager.poly.addTo(map_manager.map);
+
+        layer_manager.poly.eachLayer((layer) => layer_manager.index_pen_layer(layer));
+    }
+
+    // Fallback single-pen auto-generator
+    generate_default_pen(pen_id) {
+        if (layer_manager.auto_pen_index === undefined) {
+            layer_manager.auto_pen_index = 0;
+        }
+
+        // Calculate the anchor point based on existing GeoJSON pens ---
+        if (!layer_manager.grid_anchor) {
+            let existing_pens = Object.keys(layer_manager.pen_center);
+            
+            if (existing_pens.length > 0) {
+                // Average the coordinates of all loaded pens
+                let sum_lat = 0, sum_lng = 0;
+                existing_pens.forEach(k => {
+                    sum_lat += layer_manager.pen_center[k].lat;
+                    sum_lng += layer_manager.pen_center[k].lng;
+                });
+                
+                layer_manager.grid_anchor = {
+                    lat: sum_lat / existing_pens.length,
+                    lng: (sum_lng / existing_pens.length) + 0.008 // Offset slightly to the East
+                };
+            } else {
+                // Fallback to 0,0 if absolutely no pens exist
+                layer_manager.grid_anchor = { lat: 0, lng: 0 };
+            }
+        }
+        // ----------------------------------------------------------------------
+
+        let index = layer_manager.auto_pen_index++;
+        let cols = 5;
+        let row = Math.floor(index / cols);
+        let col = index % cols;
+
+        let spacing = 0.003; // ~300m spacing
+        let delta = 0.001;   // ~100m box size
+
+        // Add the anchor coordinates to the grid position
+        let lat = layer_manager.grid_anchor.lat + (row * spacing);
+        let lng = layer_manager.grid_anchor.lng + (col * spacing);
+
+        let geojsonFeature = {
+            "type": "Feature",
+            "properties": {
+                "id": pen_id
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[
+                    [lng - delta, lat - delta],
+                    [lng + delta, lat - delta],
+                    [lng + delta, lat + delta],
+                    [lng - delta, lat + delta],
+                    [lng - delta, lat - delta]
+                ]]
+            }
+        };
+
+        let pen_layer = L.geoJson(geojsonFeature, layer_manager.get_geojson_options());
+        pen_layer.addTo(map_manager.map);
+
+        pen_layer.eachLayer((layer) => layer_manager.index_pen_layer(layer));
+
+        if (layer_manager.poly) {
+            layer_manager.poly.addLayer(pen_layer);
+        } else {
+            layer_manager.poly = pen_layer;
+        }
+
+        return layer_manager.pen_center[String(pen_id)];
+    }
+
+    get_poly_location(pen_id) {
+        if (!pen_id) return null;
+
+        if (!layer_manager.pen_center) {
+            layer_manager.pen_center = {};
+        }
+
+        if (layer_manager.pen_center[pen_id]) {
+            return layer_manager.pen_center[pen_id];
+        }
+
+        return layer_manager.generate_default_pen(pen_id);
+    }
+
+
+    mapTransmissionNetwork(contacts, targetCowPenId) {
+        this.networkLayer.clearLayers();
         
-        if (!contactPenCoords || isNaN(contactPenCoords.lat) || !targetPenCoords || contact.pen === targetCowPenId) return;
-        // Calculate thickness and color
-        let lineWeight = Math.min(contact.duration + 1, 1); 
-        let lineColor = (contact.event === 'FLU') ? '#dc3545' : '#ffc107'; // Red for flu, yellow for non-flu
+        let targetPenCoords = layer_manager.get_poly_location(targetCowPenId); 
         
-        // Use our math function to get the curved coordinates
-        // We use Math.random() slightly on the bend factor so multiple lines don't overlap perfectly!
-        let randomBend = 0.2 + (Math.random() * 0.2); 
-        let curvePoints = getBezierCurve(targetPenCoords, contactPenCoords, randomBend);
+        contacts.forEach(contact => {
+            let contactPenCoords = layer_manager.get_poly_location(contact.pen);
+            
+            if (!contactPenCoords || isNaN(contactPenCoords.lat) || !targetPenCoords || contact.pen === targetCowPenId) return;
+            // Calculate thickness and color
+            let lineWeight = Math.min(contact.duration + 1, 1); 
+            let lineColor = (contact.event === 'FLU') ? '#dc3545' : '#ffc107'; // Red for flu, yellow for non-flu
+            
+            // Use our math function to get the curved coordinates
+            // We use Math.random() slightly on the bend factor so multiple lines don't overlap perfectly!
+            let randomBend = 0.2 + (Math.random() * 0.2); 
+            let curvePoints = getBezierCurve(targetPenCoords, contactPenCoords, randomBend);
 
-        // Draw the curved line
-        var vectorLine = L.polyline(curvePoints, {
-            color: lineColor,
-            weight: lineWeight,
-            opacity: 0.65,
-            dashArray: (contact.event === 'FLU') ? null : '8, 8', // Dashed if they didn't catch the flu
-            lineCap: 'round'
-        }).addTo(this.networkLayer);
+            // Draw the curved line
+            var vectorLine = L.polyline(curvePoints, {
+                color: lineColor,
+                weight: lineWeight,
+                opacity: 0.65,
+                dashArray: (contact.event === 'FLU') ? null : '8, 8', // Dashed if they didn't catch the flu
+                lineCap: 'round'
+            }).addTo(this.networkLayer);
 
-        vectorLine.bindPopup(`
-            <b>Transmission Vector</b><br>
-            From Pen: ${targetCowPenId} to Pen: ${contact.pen}<br>
-            Exposure Duration: ${contact.duration} days<br>
-            Resulting Event: ${contact.event}
-        `);
-    });
-}
+            vectorLine.bindPopup(`
+                <b>Transmission Vector</b><br>
+                From Pen: ${targetCowPenId} to Pen: ${contact.pen}<br>
+                Exposure Duration: ${contact.duration} days<br>
+                Resulting Event: ${contact.event}
+            `);
+        });
+    }
  mapCowTrajectory(cowId) {
     var data = record_manager.json_data;
     

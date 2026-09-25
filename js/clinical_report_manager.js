@@ -6,7 +6,7 @@ class ClinicalReportManager {
     }
 
 
-    setupReportDateControls() {
+   setupReportDateControls() {
         let jqFormat = eventManager.displayJqFormat;
         
         $('#report_start_date, #report_end_date').datepicker({
@@ -23,6 +23,11 @@ class ClinicalReportManager {
         
         $('#generate_report_btn').on('click', () => this.generateTable());
         $('#download_report_btn').on('click', () => this.downloadTableAsCSV());
+
+        // ADDED: Trigger report generation whenever the toggle is clicked
+        $('#track_daily_location_toggle').on('change', () => {
+            this.generateTable();
+        });
 
         this.updateReportDates();
         console.log("updated")
@@ -76,12 +81,13 @@ class ClinicalReportManager {
         return null;
     }
 
-    generateTable() {
+   generateTable() {
         let startStr = $('#report_start_date').val();
         let endStr = $('#report_end_date').val();
 
         let startMoment = moment(startStr, eventManager.displayMomentFormat);
         let endMoment = moment(endStr, eventManager.displayMomentFormat);
+        let global_end_date = moment($("#filter_end_date").val(), eventManager.displayMomentFormat); // Needed for movement edge cases
 
         if (!startMoment.isValid() || !endMoment.isValid()) {
             alert("Please enter valid start and end dates.");
@@ -96,6 +102,9 @@ class ClinicalReportManager {
 
         let array = event_data[has_plot];
         let sortedPens = Object.keys(layer_manager.pen_center).sort((a, b) => Number(a) - Number(b));
+        
+        // Check toggle state
+        let trackDailyLocation = $('#track_daily_location_toggle').is(':checked');
 
         let dateMap = {};
         let colTotals = {};
@@ -107,15 +116,44 @@ class ClinicalReportManager {
             let _date = currMoment.unix();
             let dateDisplayStr = currMoment.format(eventManager.displayMomentFormat);
 
-            // Find events starting on this exact day to avoid multi-counting ongoing ranges
             let match_days = [];
-            for (let i = 0; i < array.length; i++) {
-                // Check if the event starts on this day, or falls strictly on this date
-                if (array[i]["start_date"] === _date) {
-                    match_days.push(array[i]);
+
+            if (!trackDailyLocation) {
+                // MODE 1: Onset Tracking (Original)
+                for (let i = 0; i < array.length; i++) {
+                    if (array[i]["start_date"] === _date) {
+                        // Standardize object format for downstream processing
+                        match_days.push({ from_pen: String(array[i]["from_pen"]) });
+                    }
+                }
+            } else {
+                // MODE 2: Active Daily Location Tracking
+                let clinical_ids = new Set();
+                
+                // 1. Find all cows that are actively clinical on this day
+                for (let i = 0; i < array.length; i++) {
+                    if (_date >= array[i]["start_date"] && _date <= array[i]["end_date"]) {
+                        clinical_ids.add(array[i]["id"]);
+                    }
+                }
+
+                // 2. Find which pen those specific cows are in on this day
+                for (let i = 0; i < record_manager.json_data.length; i++) {
+                    let t = record_manager.json_data[i];
+                    
+                    if (clinical_ids.has(t["ID"])) {
+                        let isStart = currMoment.isSame(t["START DATE"], 'day');
+                        let isBetween = currMoment.isAfter(t["START DATE"], 'day') && currMoment.isBefore(t["END DATE"], 'day');
+                        let isGlobalLastDay = currMoment.isSame(t["END DATE"], 'day') && currMoment.isSame(global_end_date, 'day');
+
+                        if (isStart || isBetween || isGlobalLastDay) {
+                            match_days.push({ from_pen: String(t["IN PEN"]) });
+                        }
+                    }
                 }
             }
 
+            // Downstream calculation logic remains identical
             if (match_days.length > 0) {
                 if (!dateMap[dateDisplayStr]) {
                     dateMap[dateDisplayStr] = { total: 0 };
@@ -123,7 +161,7 @@ class ClinicalReportManager {
                 }
 
                 match_days.forEach(item => {
-                    let fromPen = String(item["from_pen"]);
+                    let fromPen = item.from_pen;
                     if (sortedPens.includes(fromPen)) {
                         dateMap[dateDisplayStr][fromPen]++;
                         dateMap[dateDisplayStr].total++;
@@ -155,14 +193,14 @@ class ClinicalReportManager {
         sortedPens.forEach(p => html += `<th>${p}</th>`);
         html += `<th>Total</th></tr></thead><tbody>`;
 
-        // Generate Rows using the true calculated grandTotal as the denominator
+        // Generate Rows
         sortedDates.forEach(d => {
             html += `<tr><td class="text-start fw-bold">${d}</td>`;
             let csvRow = [`"${d}"`];
             
             sortedPens.forEach(p => {
                 let count = dateMap[d][p] || 0;
-                let pctStr = count > 0 ? ((count / grandTotal) * 100).toFixed(1) + '%' : '';
+                let pctStr = count > 0 ? ((count / grandTotal) * 100).toFixed(2) + '%' : '';
                 html += `<td>${pctStr}</td>`;
                 csvRow.push(`"${pctStr}"`);
             });
@@ -174,7 +212,7 @@ class ClinicalReportManager {
             csvArray.push(csvRow.join(','));
         });
 
-        // Generate Footer Totals (Guarantees bottom-right sums to exactly 100.0%)
+        // Generate Footer Totals
         html += `</tbody><tfoot class="table-light fw-bold"><tr><td class="text-start">Total</td>`;
         let csvFooter = [`"Total"`];
         
@@ -191,31 +229,6 @@ class ClinicalReportManager {
         $('#report_table_container').html(html);
         this.currentReportCSV = csvArray.join('\n');
     }
-
-    downloadTableAsCSV() {
-        if (!this.currentReportCSV) {
-            alert("No data to download. Please generate the report first.");
-            return;
-        }
-
-        let startDate = document.getElementById('report_start_date').value.replace(/\//g, '-');
-        let endDate = document.getElementById('report_end_date').value.replace(/\//g, '-');
-        let filename = `clinical_signs_report_${startDate}_to_${endDate}.csv`;
-
-        const blob = new Blob([this.currentReportCSV], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        
-        if (link.download !== undefined) { 
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
 }
-
 // Initialize globally
 const clinicalReportManager = new ClinicalReportManager();

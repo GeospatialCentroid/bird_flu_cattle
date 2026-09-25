@@ -95,8 +95,9 @@ class Marker_Manager {
             return div;
         };
         legend.addTo(this.map);
+        var $this = this;
        $("#count_display_dropdown").change(function() {
-            record_manager.search_by_date(moment($("#filter_current_date").val(),'YYYY-MM-DD') )
+        $this.marker_cluster.refreshClusters();
         });
     }
     create_marker(obj,location){
@@ -226,8 +227,8 @@ class Marker_Manager {
                 var e = event_settings[i]
                 if(e["type"]!='plot'){
                     var records = marker_manager.get_event_records(_id,event_data[e.label])
-                    console.log(records)
-                     console.log(_date)
+                    // console.log(records)
+                    //  console.log(_date)
                     for(var i=0;i<records.length;i++){
                          if( _date>=records[i]["start_date"] && _date<=records[i]["end_date"]){
                          marker_class= "marker_"+e.label;
