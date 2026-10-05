@@ -29,7 +29,7 @@ var last_params={}
 var usp={};// the url params object to be populated
 
 var browser_control=false; //flag for auto selecting to prevent repeat cals
-var required_variables = ["ID","TO PEN","CURRENT PEN","EVENT","DATE"]
+var required_variables = ["ID","CURRENT PEN","TO PEN","EVENT","MOVE EVENT","REMARK","DATE"]
 
 $( function() {
 
@@ -194,11 +194,14 @@ function after_filter(){
     var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).utc()
     //todo  dial the INTERFACE end date back one day to account for view showing data up to but excluding the end date
    //var  end_date = moment.unix($("#filter_date .filter_slider_box").slider("values")[1]).add(-1, 'day')
-
+    record_manager.process_move_events();
+    
     record_manager.complete_end_data(end_date)
 
     record_manager.complete_start_data(start_date)
-//
+
+    
+
     record_manager.clean_data()
 
 }
@@ -210,7 +213,7 @@ function setup_interface(_event_settings){
       var start =  $("#init_filter_start_date").val()
       var end =  $("#init_filter_end_date").val()
       // filter the data
-    console.log("setup_interface", start. end)
+    console.log("setup_interface", start,end)
       record_manager.json_data=JSON.parse(JSON.stringify(record_manager.date_filter_data(record_manager.all_data,start,end)));
       if(record_manager.json_data.length==0){
             console.log("No data available, please adjust data range");

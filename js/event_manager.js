@@ -36,7 +36,6 @@ class EventManager {
         $(".picker").drawrpalette().on("choose.drawrpalette", (event, hexcolor) => {
             console.log("choose: " + hexcolor);
         });
-
         $this.show_model();
     }
 
@@ -221,31 +220,40 @@ class EventManager {
     }
 
     process_data_forms() {
+        // 1. Immediately apply the wait cursor
         $('body').addClass('waiting-cursor');
-        console.log("process_data_forms");
-        
-        var posts = [];
-        $("#data_form").children().each((index, el) => {
-            var p = {};
-            $(el).find(":input").each((index, input) => {
-                let dataAttr = $(input).attr("data");
-                if (dataAttr) {
-                    let val = $(input).val();
-                    
-                    // If the field is start or end, convert the comma-separated string into an array
-                    if ((dataAttr === 'start' || dataAttr === 'end') && typeof val === 'string') {
-                        p[dataAttr] = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
-                    } else {
-                        p[dataAttr] = val;
-                    }
-                }
-            });
-            posts.push(p);
+
+        // 2. Yield to the browser paint engine before executing synchronous work
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                console.log("process_data_forms");
+                
+                var posts = [];
+                $("#data_form").children().each((index, el) => {
+                    var p = {};
+                    $(el).find(":input").each((index, input) => {
+                        let dataAttr = $(input).attr("data");
+                        if (dataAttr) {
+                            let val = $(input).val();
+                            
+                            // If the field is start or end, convert the comma-separated string into an array
+                            if ((dataAttr === 'start' || dataAttr === 'end') && typeof val === 'string') {
+                                p[dataAttr] = val ? val.split(',').map(s => s.trim()).filter(Boolean) : [];
+                            } else {
+                                p[dataAttr] = val;
+                            }
+                        }
+                    });
+                    posts.push(p);
+                });
+                
+                $('#model_data_form').modal('hide');
+                setup_interface(posts);
+
+                // 3. Clean up the cursor after work completes
+                $('body').removeClass('waiting-cursor');
+            }, 50);
         });
-        
-        $('#model_data_form').modal('hide');
-        setup_interface(posts);
-        $('body').removeClass('waiting-cursor');
     }
 
     on_file_change(event) {

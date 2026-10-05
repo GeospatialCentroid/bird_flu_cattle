@@ -103,7 +103,7 @@ class Record_Manager {
         for (var i=0;i<required_variables.length;i++){
             var rv = required_variables[i]
             var optional=""
-            if (rv=="CURRENT PEN"){
+            if (rv=="TO PEN"){
                 optional=" (optional)"
             }
             // create the label and dropdown
@@ -123,86 +123,10 @@ class Record_Manager {
             $("#required_variables").append(html)
             }
         }
-         $('#DATE').on('change', function() {
-             $this.config_date_value( $this.json_data[0], $(this).val())
-         });
-        $this.config_date_value( $this.json_data[0],"DATE");
+        $this.data_config_handler = new Data_Config_Handler($this, required_variables);
+            $this.data_config_handler.setup_config_ui();
     }
-    config_date_value(sampleDataRow, dateColumnKey) {
     
-        // 1. Get the first date string from the data
-        let firstDateValue = sampleDataRow[dateColumnKey]; 
-        console.log("config_date_value", firstDateValue,sampleDataRow, dateColumnKey)
-        if (firstDateValue) {
-            // 2. Show it in the UI so the user can verify it
-            $('#first_date_preview').text(`(Preview: ${firstDateValue})`);
-            
-            // 3. Auto-detect the format
-            let guessedFormat = autoDetectDateFormat(firstDateValue);
-            
-            // 4. Set the dropdown to the guessed format
-            $('#csv_input_date_format').val(guessedFormat);
-        } else {
-            $('#first_date_preview').text("(No date found in first row)");
-        }
-        
-        // Open your modal
-        // $('#model_data_config').modal('show');
-    }
-    data_config_set(){
-        $('body').addClass('waiting-cursor');
-        // called from interface
-        // support multiple incoming data formats
-        let selectedInputFormat = $('#csv_input_date_format').val();
-        record_manager.date_format = selectedInputFormat;   
-        //update the data to conform with the expected columns
-          // Precompute the variable-to-oldKey map once
-        const keyMap = {};
-        for (let j = 0; j < required_variables.length; j++) {
-          const rv = required_variables[j];
-          const oldKey = document.getElementById(rv.replaceAll(" ", "_"))?.value;
-          if (oldKey && oldKey !== rv) {
-            keyMap[rv] = oldKey;
-          }
-        }
-
-        // Now update json_data efficiently (rename columns to names match expected ones)
-        const data = this.json_data;
-        for (let i = 0; i < data.length; i++) {
-          const obj = data[i];
-          for (const [newKey, oldKey] of Object.entries(keyMap)) {
-            if (oldKey in obj) {
-              obj[newKey] = obj[oldKey];
-              delete obj[oldKey];
-            }
-          }
-        }
-
-
-        //artificially populate the CURRENT PEN value - we want to know where the cow moved from
-        if($("#CURRENT_PEN").val()==0){
-            console.log("Artificially populate the CURRENT PEN")
-              const data = this.json_data;
-                const lastPenById = {}; // cache most recent "TO PEN" for each ID
-
-                for (let i = 0; i < data.length; i++) {
-                  const record = data[i];
-                  const id = record["ID"];
-
-                  // if we’ve seen this ID before, set CURRENT PEN
-                  if (lastPenById[id] !== undefined) {
-                    record["CURRENT PEN"] = lastPenById[id];
-                  }
-
-                  // update the last known TO PEN for this ID
-                  lastPenById[id] = record["TO PEN"];
-                }
-          }
-        $("#model_data_config").hide()
-        $('body').removeClass('waiting-cursor');
-        record_manager.process_data(record_manager.json_data,record_manager);
-
-    }
 
      process_data(data,$this){
         console.log("process_data!!!")
@@ -321,11 +245,17 @@ class Record_Manager {
 
              }
         }
+        // console.log("this.date_format",this.date_format)
+        // console.log(data[0]["DATE"])
+        // console.log(moment(data[0]["DATE"],this.date_format) )
+
+        // console.log(start,end)
+        //  console.log(moment(start,eventManager.displayMomentFormat),moment(end,eventManager.displayMomentFormat))
 
         for (var i=0;i<data.length;i++){
             var obj = data[i];
 
-            if( (!has_ids || ids.includes(obj["ID"])) && moment(obj["DATE"],this.date_format).unix() >= moment(start,this.date_format).unix() && moment(obj["DATE"],this.date_format).unix() <= moment(end,this.date_format).unix()){
+            if( (!has_ids || ids.includes(obj["ID"])) && moment(obj["DATE"],this.date_format).unix() >= moment(start,eventManager.displayMomentFormat).unix() && moment(obj["DATE"],this.date_format).unix() <= moment(end,eventManager.displayMomentFormat).unix()){
                  filtered_data.push(obj);
             }
         }
@@ -442,6 +372,13 @@ class Record_Manager {
           const prev = prevById[id];
 
           if (prev) {
+            // Dynamically add TO PEN if it's missing ---
+            // If the previous record lacks a TO PEN, infer it from where the cow is now
+            if (!prev["TO PEN"] || String(prev["TO PEN"]).trim() === "") {
+                prev["TO PEN"] = current["CURRENT PEN"] || current["IN PEN"];
+            }
+            // ---------------------------------------------------------
+
             // We found the next record for this ID → update the previous record
             prev["IN PEN"] = prev["TO PEN"];
             prev["START DATE"] = moment(prev["DATE"], dateFormat);
@@ -455,20 +392,22 @@ class Record_Manager {
     //-------
     // functions for polishing the data for use in visualizing on the map
     //-------
-   complete_end_data(_end_date){
+    complete_end_data(_end_date) {
         console.log("_end_date",_end_date)
-        // Since we only have movement data - we don't know how long the cows have been in their last Pen
-        // For any records that doesn't have an END Date - use the End Date
-        for(var i=0;i<this.json_data.length;i++){
-            var t = this.json_data[i]
-             if(!t.hasOwnProperty("END DATE")){
-                // for clarity add an "IN PEN"
-               t["IN PEN"]=t["TO PEN"]
-               t["START DATE"]=moment(t["DATE"],this.date_format)
-               t["END DATE"]=_end_date
-
-             }
-       }
+        for(var i = 0; i < this.json_data.length; i++) {
+            var t = this.json_data[i];
+            
+            // Safely check for missing END DATE
+            if(!t["END DATE"] || t["END DATE"] === "") {
+                
+                // Fallback chain: use TO PEN. If empty, use CURRENT PEN. If empty, keep IN PEN.
+                t["IN PEN"] = t["TO PEN"] || t["CURRENT PEN"] || t["IN PEN"];
+                
+                // Fallback for START DATE just in case it wasn't generated
+                t["START DATE"] = t["START DATE"] || moment(t["DATE"], this.date_format);
+                t["END DATE"] = _end_date;
+            }
+        }
     }
     complete_start_data(_start_date){
         console.log("_star_date",_start_date)
@@ -497,6 +436,68 @@ class Record_Manager {
            }
        }
     }
+    
+   process_move_events() {
+        const move_event_val = $("#MOVE_EVENT").val();
+        const remark_selected = $("#REMARK").length && $("#REMARK").val() !== "0";
+
+        // Stop if no valid MOVE_EVENT value or REMARK column was selected
+        if (!move_event_val || move_event_val === "0" || !remark_selected) return;
+
+        const data = this.json_data;
+        const grouped_by_id = {};
+
+        // Group rows sequentially by ID
+        for (let i = 0; i < data.length; i++) {
+            let id = data[i]["ID"];
+            if (id) {
+                if (!grouped_by_id[id]) grouped_by_id[id] = [];
+                grouped_by_id[id].push({ row: data[i], original_index: i });
+            }
+        }
+
+        for (const id in grouped_by_id) {
+            const history = grouped_by_id[id];
+
+            for (let i = 0; i < history.length; i++) {
+                const current_item = history[i];
+                const row = current_item.row;
+
+                // Safely match against the selected MOVE_EVENT value
+                if (row["EVENT"] && row["EVENT"].toString().trim().toUpperCase() === move_event_val.toUpperCase() && row["REMARK"]) {
+                    const numbers = row["REMARK"].match(/\d+/g);
+
+                    if (numbers && numbers.length >= 2) {
+                        const to_pen = parseInt(numbers[numbers.length - 1], 10);
+
+                        let arrived = false;
+
+                        // Look ahead in future history for this cow
+                        for (let j = i + 1; j < history.length; j++) {
+                            const next_row = history[j].row;
+                            const next_to_pen = parseInt(next_row["TO PEN"], 10);
+                            const next_current_pen = parseInt(next_row["CURRENT PEN"], 10);
+
+                            if (next_to_pen === to_pen || next_current_pen === to_pen) {
+                                arrived = true;
+                                break;
+                            }
+                        }
+
+                        // If no future record proves arrival, update current row in place
+                        if (!arrived) {
+                            row["IN PEN"] = to_pen;
+                            row["CURRENT PEN"] = to_pen;
+                            row["TO PEN"] = to_pen;
+
+                            delete row["MOVE_EVENT"];
+                            delete row["REMARK"];
+                        }
+                    }
+                }
+            }
+        }
+    }
     clean_data(){
         // remove extraneous/confusing attributes
         for(var i=0;i<this.json_data.length;i++){
@@ -508,7 +509,6 @@ class Record_Manager {
 
        }
     }
-
    populate_days(_array, _event_start, _event_end, _end_date) {
         // Ensure _event_start and _event_end are arrays for uniform checking
         let startList = Array.isArray(_event_start) ? _event_start : [_event_start];
@@ -563,7 +563,14 @@ class Record_Manager {
 
         if(infection_val){
             // first sort
-            const sorted = [...this.json_data].sort((a, b) => a["START DATE"].valueOf() - b["START DATE"].valueOf());
+            // first sort with a fallback for missing dates
+            const sorted = [...this.json_data].sort((a, b) => {
+                // Check if START DATE exists, otherwise fallback to standard DATE or 0 (epoch)
+                const timeA = a["START DATE"] ? a["START DATE"].valueOf() : (a["DATE"] ? moment(a["DATE"], this.date_format).valueOf() : 0);
+                const timeB = b["START DATE"] ? b["START DATE"].valueOf() : (b["DATE"] ? moment(b["DATE"], this.date_format).valueOf() : 0);
+                
+                return timeA - timeB;
+            });
             // Convert infection_val to an array if it isn't one already
             const infectionArray = Array.isArray(infection_val) ? infection_val : [infection_val];
 

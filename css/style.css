@@ -898,3 +898,8 @@ section.card .btn {
         background-color: #f8f9fa; /* Background color for the header */
         z-index: 1; /* Ensure the header stays on top */
     }
+
+.waiting-cursor,
+.waiting-cursor * {
+  cursor: wait !important;
+}
