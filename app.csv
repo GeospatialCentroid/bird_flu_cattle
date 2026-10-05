@@ -41,7 +41,7 @@ pens,geojson,data/Farm_A_9_11_25 copy_.geojson,id,,,id," {
         ]
     }
 ]}"
-movement,csv,data/FarmAL.dataraw.csv,ID,,DATE,," {
+movement,csv,data/FarmAL.dataraw_.csv,ID,,DATE,," {
 ""renderer"": {
 ""type"": ""simple"",
 ""symbol"": {
