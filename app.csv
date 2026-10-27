@@ -41,7 +41,7 @@ pens,geojson,data/Farm_A_9_11_25 copy_.geojson,id,,,id," {
         ]
     }
 ]}"
-movement,csv,data/FarmAL.dataraw_.csv,ID,,DATE,," {
+movement,csv,data/Farm BC Centroid Data Cleaned 11.3.25.csv,ID,,DATE,," {
 ""renderer"": {
 ""type"": ""simple"",
 ""symbol"": {

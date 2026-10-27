@@ -903,3 +903,10 @@ section.card .btn {
 .waiting-cursor * {
   cursor: wait !important;
 }
+
+.contact-event-hidden {
+    display: none !important;
+}
+.end-date-hidden {
+    display: none !important;
+}

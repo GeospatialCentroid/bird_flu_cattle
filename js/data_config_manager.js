@@ -64,10 +64,20 @@ class Data_Config_Handler {
                 html += `<option value="0">Not Selected</option>`;
             } else {
                 html += `<option value="0">Not Available</option>`;
+                
+                // Define potential column name matches based on the required variable
+                let possibleMatches = [rv.toUpperCase(), rv.replaceAll(" ", "").toUpperCase()];
+                if (rv === "CURRENT PEN") {
+                    possibleMatches.push("CURRENTPEN", "PEN");
+                } else if (rv === "TO PEN") {
+                    possibleMatches.push("TOPEN", "DEST_PEN");
+                }
+
                 for (let k = 0; k < keys.length; k++) {
                     const keyUpper = keys[k].toUpperCase();
-                    const rvUpper = rv.toUpperCase();
-                    const isSelected = (keyUpper === rvUpper) || (rv === "CURRENT PEN" && keyUpper === "PEN");
+                    
+                    // Check if the current key matches any items in our acceptable list
+                    const isSelected = possibleMatches.includes(keyUpper);
                     const selected = isSelected ? 'selected' : '';
 
                     html += `<option value="${keys[k]}" ${selected}>${keys[k]}</option>`;

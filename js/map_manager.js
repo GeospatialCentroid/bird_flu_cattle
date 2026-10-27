@@ -55,10 +55,11 @@ class Map_Manager {
         }).addTo($this.map);
 
     // specify popup options
-    this.popup_options =
-    {
-    'className' : 'popup',
-    "keepInView":false
+    this.popup_options ={
+        'className': 'popup',
+        "keepInView": true,      // Keeps the popup anchored in view if the map moves
+        "autoPan": true,         // Automatically pans the map to ensure the popup is fully visible
+        "autoPanPadding": [50, 50] // Leaves a 50px buffer around the edges when panning
     }
 
     // used during layer selection

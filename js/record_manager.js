@@ -132,7 +132,7 @@ class Record_Manager {
         console.log("process_data!!!")
         // create a copy of the original data
         $this.all_data = JSON.parse(JSON.stringify(data))
-
+      
         // index sort
         if($this.json_data[0]?.["INDEX"]){
            $this.json_data.sort((a, b) => {
@@ -215,6 +215,27 @@ class Record_Manager {
         }
         date_list.sort((a, b) => a.valueOf() - b.valueOf());
         return date_list
+    }
+    compute_global_dataset_date_range() {
+        if (!this.json_data || this.json_data.length === 0) return;
+
+        // Collect all valid dates from START DATE or DATE fields
+        let validDates = [];
+        this.json_data.forEach(row => {
+            let d = row["START DATE"] || row["DATE"];
+            if (d) {
+                let m = moment(d, this.date_format);
+                if (m.isValid()) validDates.push(m);
+            }
+        });
+
+        if (validDates.length > 0) {
+            this.global_min_date = moment.min(validDates);
+            this.global_max_date = moment.max(validDates);
+        } else {
+            this.global_min_date = null;
+            this.global_max_date = null;
+        }
     }
     date_filter_data(data,start,end){
         var filtered_data=[];
@@ -438,16 +459,10 @@ class Record_Manager {
     }
     
    process_move_events() {
-        const move_event_val = $("#MOVE_EVENT").val();
-        const remark_selected = $("#REMARK").length && $("#REMARK").val() !== "0";
-
-        // Stop if no valid MOVE_EVENT value or REMARK column was selected
-        if (!move_event_val || move_event_val === "0" || !remark_selected) return;
-
         const data = this.json_data;
         const grouped_by_id = {};
 
-        // Group rows sequentially by ID
+        // 1. Group rows sequentially by ID
         for (let i = 0; i < data.length; i++) {
             let id = data[i]["ID"];
             if (id) {
@@ -463,36 +478,27 @@ class Record_Manager {
                 const current_item = history[i];
                 const row = current_item.row;
 
-                // Safely match against the selected MOVE_EVENT value
-                if (row["EVENT"] && row["EVENT"].toString().trim().toUpperCase() === move_event_val.toUpperCase() && row["REMARK"]) {
-                    const numbers = row["REMARK"].match(/\d+/g);
+                // 2. Parse transition remarks like 'F006T022' (From Pen 6 To Pen 22)
+                if (row["REMARK"] && typeof row["REMARK"] === 'string') {
+                    let remarkStr = row["REMARK"].trim();
+                    
+                    // Match pattern like F006T022 or similar transition strings
+                    let match = remarkStr.match(/F(\d+)T(\d+)/i);
+                    if (match) {
+                        let fromPen = parseInt(match[1], 10);
+                        let toPen = parseInt(match[2], 10);
 
+                        // Assign IN PEN and TO PEN explicitly from the remark string
+                        row["IN PEN"] = row["IN PEN"] || fromPen;
+                        row["TO PEN"] = toPen;
+                    }
+                }
+
+                // Fallback standard move event parsing if TO PEN is still missing
+                if (!row["TO PEN"] && row["REMARK"]) {
+                    const numbers = row["REmark"] ? row["REMARK"].match(/\d+/g) : null;
                     if (numbers && numbers.length >= 2) {
-                        const to_pen = parseInt(numbers[numbers.length - 1], 10);
-
-                        let arrived = false;
-
-                        // Look ahead in future history for this cow
-                        for (let j = i + 1; j < history.length; j++) {
-                            const next_row = history[j].row;
-                            const next_to_pen = parseInt(next_row["TO PEN"], 10);
-                            const next_current_pen = parseInt(next_row["CURRENT PEN"], 10);
-
-                            if (next_to_pen === to_pen || next_current_pen === to_pen) {
-                                arrived = true;
-                                break;
-                            }
-                        }
-
-                        // If no future record proves arrival, update current row in place
-                        if (!arrived) {
-                            row["IN PEN"] = to_pen;
-                            row["CURRENT PEN"] = to_pen;
-                            row["TO PEN"] = to_pen;
-
-                            delete row["MOVE_EVENT"];
-                            delete row["REMARK"];
-                        }
+                        row["TO PEN"] = parseInt(numbers[numbers.length - 1], 10);
                     }
                 }
             }

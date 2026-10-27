@@ -232,8 +232,9 @@ function setup_interface(_event_settings){
       $("#init_filter_start_date").removeClass("error_field");
       $("#init_filter_end_date").removeClass("error_field");
       // update interface dates
-      var date_list = record_manager.get_date_list(record_manager,record_manager.json_data)
-      record_manager.add_date_search(date_list[0],date_list[date_list.length-1])
+      record_manager.compute_global_dataset_date_range();
+      //var date_list = record_manager.get_date_list(record_manager,record_manager.json_data)
+      record_manager.add_date_search( record_manager.global_min_date, record_manager.global_max_date)
       after_filter()
       //
       event_settings =_event_settings

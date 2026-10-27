@@ -146,11 +146,26 @@ class Marker_Manager {
             this.items.push(marker)
             this.marker_cluster.addLayer( marker)//
             marker.on('click', function(e) {
-              // create and display popup on map
-              let popup = L.popup({ autoPanPadding: [200, 200],offset: [0, -10]})
+              // 1. Create and display popup on map
+              let popup = L.popup({ 
+                  ...map_manager.popup_options,
+                  autoPan: true,
+                  autoPanPadding: [50, 50],
+                  offset: [0, -10]
+              })
                 .setLatLng(e.target._latlng)
                 .setContent(popup_content)
                 .openOn(map_manager.map);
+
+              // 2. Dynamically measure popup height and pan map to center it in the shrunk container
+              setTimeout(() => {
+                  let el = popup.getElement();
+                  if (el) {
+                      let popupHeight = el.clientHeight;
+                      // Shift map viewport upward by half the popup's height to center it cleanly
+                      map_manager.map.panBy([0, -Math.round(popupHeight / 2)], { animate: true });
+                  }
+              }, 50);
 
               // close event popup
               popup.on("remove", function () {

@@ -52,7 +52,16 @@ class Table_Manager {
             }
          }
     });
-
+    $('#toggleEndDate').on('change', () => {
+        // Check if we have active results or json_data to re-render from
+        if (this.json_data) {
+            this.generate_table(this.json_data, true);
+        } else if (this.results) {
+            this.generate_table(this.results, true);
+        } else if (this.selected_layer_id) {
+            this.get_layer_data(this.selected_layer_id);
+        }
+    });
 //     //set the control values
 //    $("#query_button").text(LANG.DATA_TABLE.QUERY)
 //    $("#reset_button").text(LANG.DATA_TABLE.RESET)
@@ -334,60 +343,58 @@ class Table_Manager {
 }
   //
   generate_table(_features, show){
-   this.csv=""
-    this.id="id";//reset
+       this.csv=""
+       this.id="id";//reset
 
-    this.toggle_table(true)
-    if(_features?.features){
-        //drop down a level if the features ar buried
-        _features= _features.features
+       this.toggle_table(true)
+       if(_features?.features){
+           _features= _features.features
+       }
+       this.results = _features
+       
+       var html= "<table class='fixed_headers'><thead><tr>"
+       if (_features.length==0){
+           $("#"+this.elm).html("No Results")
+           return
+       }
 
+       var first_row = _features[0]
+       var csv_array=[]
+       var cols=[]
+       var props=first_row.properties
+       if(!props){
+           props=first_row
+       }
+
+       // Check if End Date toggle is checked (default to true if element doesn't exist yet)
+       var isEndDateVisible = $('#toggleEndDate').length === 0 || $('#toggleEndDate').is(':checked');
+
+       for (var p in props){
+             // Omit _id, FROM PEN, and conditionally omit END DATE if toggle is unchecked
+             if(p !== "_id" && p !== "FROM PEN" && (isEndDateVisible || p !== "END DATE")){
+                 var sort_icon="<i/>"
+                 if(this.sort_col == p){
+                    sort_icon=this.get_sort_icon(this.sort_dir)
+                 }
+                 html +="<th><span onclick='table_manager.sort(this,\""+p+"\")'>"+p+" "+sort_icon+"</span></th>";
+                 cols.push(p)
+                 csv_array.push(p)
+                }
+       }
+       this.csv=csv_array.join(",")+"\n"
+
+       html +="</tr></thead><tbody>";
+       html+=this.get_rows_html(_features)
+
+       html +="</tbody></table>";
+
+       if(show){
+            $("#"+this.elm).html(html)
+        }
+
+       setTimeout(function(){ $(window).trigger("resize"); }, 10);
+       return this.csv
     }
-    this.results = _features
-    //the first call to generated the table
-    var html= "<table class='fixed_headers'><thead><tr>"
-    // loop through the header elements
-    if (_features.length==0){
-        $("#"+this.elm).html("No Results")
-        return
-    }
-
-
-    var first_row = _features[0]
-    var csv_array=[]
-    var cols=[]
-    var props=first_row.properties
-    if(!props){
-        // for csu
-       props=first_row
-    }
-
-    for (var p in props){
-        //todo add domain names (alias) for headers and pass database name to function for sorting
-          if(p!="_id" && p!="FROM PEN"){
-             var sort_icon="<i/>"
-             if(this.sort_col ==p){
-                sort_icon=this.get_sort_icon(this.sort_dir)
-             }
-             html +="<th><span onclick='table_manager.sort(this,\""+p+"\")'>"+p+" "+sort_icon+"</span></th>";
-             cols.push(p)
-             csv_array.push(p)
-            }
-    }
-    this.csv=csv_array.join(",")+"\n"
-
-    html +="</tr></thead><tbody>";
-    html+=this.get_rows_html(_features)
-
-    html +="</tbody></table>";
-
-   if(show){
-        $("#"+this.elm).html(html)
-    }
-
-    setTimeout(function(){ $(window).trigger("resize"); }, 10);
-    return this.csv
-  }
   get_rows_html(_rows,_cols){
     if(!_cols && _rows.length>0 && _rows[0]?.properties){
         _cols=_rows[0].properties
@@ -399,14 +406,15 @@ class Table_Manager {
     }
     var html="";
 
-    //determine the id, which isn;t always the same for each geojson
     if(typeof(_rows[0][this.id])=="undefined"){
              this.id = "_id"
     }
-    // todo this needs to be more robust
     if (!_rows[0].properties?.id && _rows[0].properties?.OBJECTID ){
         this.id ="OBJECTID"
     }
+
+    var isEndDateVisible = $('#toggleEndDate').length === 0 || $('#toggleEndDate').is(':checked');
+
     for(var i =0;i<_rows.length;i++){
         var id=""
         if(_rows[i]?.properties){
@@ -417,12 +425,11 @@ class Table_Manager {
         var csv_array=[]
         html+="<tr onclick='table_manager.highlight_feature(this,\""+id+"\")' ondblclick='table_manager.zoom_feature(this,\""+id+"\")'>"
         for (var p in _cols){
-            if(_cols[p]!="_id" && _cols[p]!="FROM PEN"){
+            if(_cols[p] !== "_id" && _cols[p] !== "FROM PEN" && (isEndDateVisible || _cols[p] !== "END DATE")){
                   var text = ""
                   if(_rows[i]?.properties){
-                    text=_rows[i].properties[p]
+                    text=_rows[i].properties[_cols[p]]
                   }else{
-
                     text=_rows[i][_cols[p]]
                   }
 
@@ -432,7 +439,6 @@ class Table_Manager {
                         text = text.clip_text(50)
                     }
                   }
-                  // if we're dealing with a date object
                   if(_rows[i][_cols[p]] instanceof moment){
                     text = _rows[i][_cols[p]].format(eventManager.displayMomentFormat)
                   }

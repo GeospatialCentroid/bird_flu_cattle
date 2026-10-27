@@ -157,7 +157,18 @@
 
 </aside>
 </div>
-<section id="data_table_wrapper" class="card table-card"><div class="table-toolbar"><div class="table-stats"><div id="data_table_total"><div><span class="total_results"></span></div><div><span class="total_showing"></span></div></div></div><div class="table-actions"><div id="data_table_select"></div><button class="btn btn-outline-secondary" onclick="table_manager.download()" title="Download current results"><i class="bi bi-cloud-arrow-down"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.download_all()" title="Download all records"><i class="bi bi-cloud-arrow-down-fill"></i></button>
+<section id="data_table_wrapper" class="card table-card">
+    <div class="table-toolbar"><div class="table-stats">
+        <div id="data_table_total"><div>
+            <span class="total_results"></span>
+        </div>
+            <div><span class="total_showing"></span></div></div></div>
+            <div class="table-actions"><div id="data_table_select"></div>
+            <div class="form-check form-switch mb-2">
+                 <label class="form-check-label" for="toggleEndDate">Show End Date</label>
+                <input class="form-check-input" type="checkbox" id="toggleEndDate">
+            </div>
+            <button class="btn btn-outline-secondary" onclick="table_manager.download()" title="Download current results"><i class="bi bi-cloud-arrow-down"></i></button><button class="btn btn-outline-secondary" onclick="table_manager.download_all()" title="Download all records"><i class="bi bi-cloud-arrow-down-fill"></i></button>
     <button class="btn btn-outline-secondary" onclick="table_manager.toggle_table()" title="Close"><i class="bi bi-x"></i></button></div></div><div id="data_table" class="dashboard-table"></div></section>
 </div>
 <div class="modal" tabindex="-1" role="dialog" id="model_data_config"><div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Data Config</h5></div>
@@ -210,7 +221,7 @@
             <label for="start_dropdown">Start Event</label>
             <div id="start_dropdown" class="start_dropdown"></div>
         </div>
-        <div class="col"><label for="end_dropdown">End Event</label><div id="end_dropdown" class="end_dropdown"></div></div><div class="col"><label for="type_dropdown">Additional Visualization</label><select id="type_display_dropdown" data="type"><option value="cluster_color">Cluster Color</option><option value="cluster_outline">Cluster Outline</option><option value="plot">Plot</option><option value="None"></option></select></div><div class="col"><label for="cow_color">Cow Color</label><span class="cow_color"><input type="text" class="cow_color picker" value="" data="color"/></span></div><div class="col"><button type="button" class="btn btn-success duplicate" onclick="duplicate_row(this);fix_picker();"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path></svg></button><button type="button" class="btn btn-danger" onclick="delete_row(this);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/></svg></button></div></div></div></div><div class="modal-footer"><button id="data_form_save_but" onclick="eventManager.process_data_forms();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
+        <div class="col"><label for="end_dropdown">End Event</label><div id="end_dropdown" class="end_dropdown"></div></div><div class="col"><label for="type_dropdown">Additional Visualization</label><select id="type_display_dropdown" data="type"><option value="cluster_color">Cluster Color</option><option value="cluster_outline">Cluster Outline</option><option value="plot">Plot</option><option value="None"></option></select></div><div class="col"><label for="cow_color">Cow Color</label><span class="cow_color"><input type="text" class="cow_color picker" value="" data="color"/></span></div><div class="col"><button type="button" class="btn btn-success duplicate" onclick="eventManager.duplicate_row(this);eventManager.fix_picker();"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"></path></svg></button><button type="button" class="btn btn-danger" onclick="eventManager.delete_row(this);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/></svg></button></div></div></div></div><div class="modal-footer"><button id="data_form_save_but" onclick="eventManager.process_data_forms();" type="button" class="btn btn-primary">Submit</button></div></div></div></div>
 
 <!-- Report Modal-->
 <div class="modal fade" id="clinicalReportModal" tabindex="-1" aria-hidden="true" style="z-index: 105000;">
@@ -263,48 +274,53 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        
-        <!-- Controls -->
         <!-- Inside your tracingModal -->
-<!-- Inside your tracingModal -->
-<div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
-    <div>
-        <label class="form-label">Start Date</label>
-        <input type="text" id="trace_start_date" class="form-control">
-    </div>
-    <div>
-        <label class="form-label">End Date</label>
-        <input type="text" id="trace_end_date" class="form-control">
-    </div>
-    <div>
-        <label class="form-label">Trace Window (Days)</label>
-        <input type="number" id="trace_duration" class="form-control" value="14">
-    </div>
-    <button class="btn btn-primary" onclick="contactTracer.runContactTrace()">Generate</button>
-    <button class="btn btn-success" onclick="contactTracer.downloadTableAsCSV()">
-        <i class="bi bi-download"></i> CSV
-    </button>
-</div>
+        <!-- Controls -->
+        <div class="d-flex align-items-end gap-3 mb-4 flex-wrap">
+            <div>
+                <label class="form-label">Start Date</label>
+                <input type="text" id="trace_start_date" class="form-control">
+            </div>
+            <div>
+                <label class="form-label">End Date</label>
+                <input type="text" id="trace_end_date" class="form-control">
+            </div>
+            <div>
+                <label class="form-label">Trace Window (Days)</label>
+                <input type="number" id="trace_duration" class="form-control" value="14">
+            </div>
 
+           <div>
+                <label class="form-label">Filter Events</label>
+                <input type="text" id="filter_contact_event" class="form-control bg-white multi-select-trigger" data="filter_contact_event" readonly placeholder="All Events" style="cursor: pointer; min-width: 160px;">
+            </div>
 
-<!-- Results Table -->
-<div class="table-responsive">
-
-    <table class="table table-striped table-hover" id="trace_results_table">
-        <thead>
-            <tr>
-                <th>Contact Cow ID</th>
-                <th>Pen Location</th>
-                <th>Contact Event</th> 
-                <th>Overlap Duration</th>
-                <th>Dates of Contact</th>
-            </tr>
-        </thead>
-        <tbody id="trace_results_body">
-            <tr><td colspan="5" class="text-center text-muted">Run trace to see results.</td></tr>
-        </tbody>
-        </table>
-    </div>
+            <!-- <button class="btn btn-primary" onclick="contactTracer.runContactTrace()">Generate</button> -->
+            <button class="btn btn-success" onclick="contactTracer.downloadTableAsCSV()">
+                <i class="bi bi-download"></i> CSV
+            </button>
+            <div class="form-check form-switch mb-1">
+                <input class="form-check-input" type="checkbox" id="toggleContactEvent" onchange="contactTracer.toggleContactEventColumn()">
+                <label class="form-check-label" for="toggleContactEvent">Show Contact Event</label>
+            </div>
+        </div>
+        <!-- Results Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="trace_results_table">
+                <thead>
+                    <tr>
+                        <th>Contact Cow ID</th>
+                        <th>Pen Location</th>
+                        <th class="col-contact-event contact-event-hidden">Contact Event</th>
+                        <th>Overlap Duration</th>
+                        <th>Dates of Contact</th>
+                    </tr>
+                </thead>
+                <tbody id="trace_results_body">
+                    <tr><td colspan="5" class="text-center text-muted">Run trace to see results.</td></tr>
+                </tbody>
+            </table>
+        </div>
 
       </div>
     </div>

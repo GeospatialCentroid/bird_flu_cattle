@@ -64,7 +64,7 @@ class Layer_Manager {
                 popup_content += `<button id='edit_download_btn' class='btn btn-outline-primary btn-sm' onclick="download('geojson.geojson', JSON.stringify(layer_manager.poly.toGeoJSON()))"><i class='bi bi-download'></i></button>`;
                 layer.on('click', (e) => {
                     map_manager.show_highlight_geo_json(feature);
-                    let popup = L.popup()
+                    let popup = L.popup(map_manager.popup_options)
                         .setLatLng(e.latlng)
                         .setContent(popup_content)
                         .openOn(map_manager.map);
@@ -297,7 +297,7 @@ class Layer_Manager {
     for (let i = 0; i < history.length - 1; i++) {
         let currentRecord = history[i];
         let nextRecord = history[i + 1];
-        console.log(currentRecord)
+        // console.log(currentRecord)
         let currentPen = currentRecord["IN PEN"];
         let nextPen = nextRecord["IN PEN"]; 
         
@@ -305,8 +305,8 @@ class Layer_Manager {
         if (currentPen !== nextPen) {
             let startCoords = layer_manager.get_poly_location(currentPen);
             let endCoords = layer_manager.get_poly_location(nextPen);
-            console.log(currentPen,startCoords)
-            console.log(nextPen,endCoords)
+            // console.log(currentPen,startCoords)
+            // console.log(nextPen,endCoords)
             if (!startCoords || !endCoords) continue;
             
             // REUSE CODE: Generate the curve
@@ -337,90 +337,6 @@ class Layer_Manager {
         }
     }
 }
-//zoom_marker(_id){
-//    var coords = this.get_feature(_id)
-//
-//    //var corner=L.latLng(Number(coords[1]), Number(coords[0]))//L.latLngBounds(coords, coords);
-//    map_manager.map_zoom_event(coords)
-//    //this.layer_click({latlng:corner},1)
-//}
-//get_feature(_id){
-//    //var f =this.layers[0].layer_obj.data.features
-//    var f = layer_rects
-//    for (var i =0;i<f.length;i++){
-//        var props=f[i].properties
-//        if(props._id==_id){
-//            return f[i].getBounds()
-//           // return f[i].geometry.coordinates
-//        }
-//    }
-//  }
-//layer_click(e,_resource_id){
-//        // show all the projects under the mouse click
-//        map_manager.layer_clicked=true
-//        map_manager.selected_layer_id=_resource_id
-//
-//        map_manager.click_lat_lng = e.latlng
-//        map_manager.click_x_y=e.containerPoint
-//       var  turf_point=turf.point([e.latlng.lng,e.latlng.lat])
-//
-//        map_manager.popup_show();
-//        var features=[]
-//        //
-//         for(var i =0;i<layer_rects.length;i++){
-//
-//            layer_rects[i].eachLayer(function(child_layer) {
-//                  if (turf.booleanPointInPolygon(turf_point, child_layer.toGeoJSON())) {
-//                   features.push(layer_rects[i]);
-//                  }
-//            })
-//        }
-//        //
-//       // try{
-////              map_manager.selected_feature_id=layer_manager.get_object_id(e.layer.feature);
-//
-//              map_manager.show_popup_details(features)
-//        //}catch(error){
-//            // could be an artificial click
-//             console_log("error",e)
-//       // }
-//         //map_manager.layer_clicked=false
-//  }
-//  get_layer_obj(_resource_id){
-//      for(var i =0;i<this.layers.length;i++){
-//            var temp_layer = this.layers[i]
-//            if (temp_layer.id==_resource_id){
-//                return temp_layer
-//
-//            }
-//      }
-//      // if no layer was returned - maybe we are controls
-//     if(_resource_id =="basemap"){
-//        return {"layer_obj":this.basemap_layer,"type":"basemap"}
-//
-//     }
-//
-//  }
-//  is_on_map(_resource_id){
-//    var layer = this.get_layer_obj(_resource_id)
-//    if (layer){
-//        return true;
-//    }else{
-//        return false;
-//    }
-//  }
-//  get_object_id(_feature){
-//        // as the objectid might not be consistent between layers, we'll to no consistently determine what it is
-//        if(!_feature?.id ){
-//            if( _feature?.properties && _feature.properties?.id){
-//                 return  _feature.properties.id
-//            }else{
-//                return  _feature.properties._id
-//            }
-//        }
-//        return _feature["id"]
-//  }
-
 
 }
 
